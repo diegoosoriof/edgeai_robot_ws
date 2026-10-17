@@ -549,6 +549,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/pybind11-global-3.0.4-pyh648e204_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/pycodestyle-2.14.0-pyhd8ed1ab_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/pydocstyle-6.3.0-pyhd8ed1ab_1.conda
+      - conda: https://prefix.dev/conda-forge/noarch/pydot-4.0.1-pyhcf101f3_2.conda
       - conda: https://prefix.dev/conda-forge/noarch/pyflakes-3.4.0-pyhd8ed1ab_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/pygments-2.21.0-pyhcf101f3_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/pyparsing-3.3.2-pyhcf101f3_0.conda
@@ -685,6 +686,7 @@ environments:
       - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-point-cloud-transport-4.0.6-np2py312h2ed9cc7_14.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-python-cmake-module-0.11.1-np2py312h2ed9cc7_14.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-python-qt-binding-2.2.2-np2py312h2ed9cc7_14.conda
+      - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-qt-dotgraph-2.7.5-np2py312he2aab8f_14.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-qt-gui-2.7.5-np2py312h2ed9cc7_14.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-qt-gui-cpp-2.7.5-np2py312h2ed9cc7_14.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-qt-gui-py-common-2.7.5-np2py312h2ed9cc7_14.conda
@@ -758,6 +760,7 @@ environments:
       - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-rosidl-typesupport-introspection-c-4.6.7-np2py312h2ed9cc7_14.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-rosidl-typesupport-introspection-cpp-4.6.7-np2py312h2ed9cc7_14.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-rpyutils-0.4.2-np2py312h2ed9cc7_14.conda
+      - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-rqt-graph-1.5.5-np2py312h2ed9cc7_14.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-rqt-gui-1.6.2-np2py312h2ed9cc7_14.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-rqt-gui-cpp-1.6.2-np2py312h2ed9cc7_14.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-rqt-gui-py-1.6.2-np2py312h2ed9cc7_14.conda
@@ -9372,6 +9375,19 @@ packages:
   license_family: MIT
   size: 40236
   timestamp: 1733261742916
+- conda: https://prefix.dev/conda-forge/noarch/pydot-4.0.1-pyhcf101f3_2.conda
+  sha256: af7213a8ca077895e7e10c8f33d5de3436b8a26828422e8a113cc59c9277a3e2
+  md5: 15f6d0866b0997c5302fc230a566bc72
+  depends:
+  - graphviz >=2.38.0
+  - pyparsing >=3.1.0
+  - python >=3.10
+  - python
+  license: MIT
+  license_family: MIT
+  run_exports: {}
+  size: 150656
+  timestamp: 1766345630713
 - conda: https://prefix.dev/conda-forge/noarch/pyflakes-3.4.0-pyhd8ed1ab_0.conda
   sha256: 4b6fb3f7697b4e591c06149671699777c71ca215e9ec16d5bd0767425e630d65
   md5: dba204e749e06890aeb3756ef2b1bf35
@@ -12215,6 +12231,27 @@ packages:
   run_exports: {}
   size: 60270
   timestamp: 1768974983233
+- conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-qt-dotgraph-2.7.5-np2py312he2aab8f_14.conda
+  sha256: d83e5bb155bbb611f3c9690242f3e12afe9405f220cdd50822cce9f7610f626e
+  md5: 3d138622e8733ef94cf5c875fd69125c
+  depends:
+  - pydot
+  - python
+  - ros-jazzy-python-qt-binding
+  - ros-jazzy-ros-workspace
+  - ros2-distro-mutex 0.13.* jazzy_*
+  - libgcc >=14
+  - libstdcxx >=14
+  - libgcc >=14
+  - __glibc >=2.17,<3.0.a0
+  - numpy >=1.23,<3
+  - ros2-distro-mutex >=0.13.0,<0.14.0a0
+  - python_abi 3.12.* *_cp312
+  - graphviz >=14.1.1,<15.0a0
+  license: BSD-3-Clause
+  run_exports: {}
+  size: 64321
+  timestamp: 1768975376867
 - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-qt-gui-2.7.5-np2py312h2ed9cc7_14.conda
   sha256: d811e26edc8246b3a75cbbf15fdc7c1b8185632279130da6167e62948558ed1c
   md5: 82c37d61771000f3e98f0070a0191dd8
@@ -13993,6 +14030,29 @@ packages:
   run_exports: {}
   size: 26458
   timestamp: 1768974380541
+- conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-rqt-graph-1.5.5-np2py312h2ed9cc7_14.conda
+  sha256: 06e75834597a89831fd92bcf12f7944c5452acf3450110a0878c9f30119ce464
+  md5: 07c7984e18e0a65ca4766de82076c4da
+  depends:
+  - python
+  - ros-jazzy-ament-index-python
+  - ros-jazzy-python-qt-binding
+  - ros-jazzy-qt-dotgraph
+  - ros-jazzy-ros-workspace
+  - ros-jazzy-rqt-gui
+  - ros-jazzy-rqt-gui-py
+  - ros2-distro-mutex 0.13.* jazzy_*
+  - __glibc >=2.17,<3.0.a0
+  - libgcc >=14
+  - libstdcxx >=14
+  - libgcc >=14
+  - numpy >=1.23,<3
+  - python_abi 3.12.* *_cp312
+  - ros2-distro-mutex >=0.13.0,<0.14.0a0
+  license: BSD-3-Clause
+  run_exports: {}
+  size: 69978
+  timestamp: 1768979128360
 - conda: https://prefix.dev/robostack-jazzy/linux-64/ros-jazzy-rqt-gui-1.6.2-np2py312h2ed9cc7_14.conda
   sha256: 2f8ccaf9db4164dd9dbf3da31f974eafe2cf1bb38577f3bcf7dca40da502b5b9
   md5: 2f676b1ffd9c05067c47cc7579aba411
