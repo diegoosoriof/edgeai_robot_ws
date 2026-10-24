@@ -137,3 +137,15 @@ src/edgeai_robot_description/
   config/slam_toolbox.yaml           Mapping parameters
   maps/                             Packaged map resources
 ```
+
+Start Gazebo, the robot, SLAM Toolbox, Nav2, and RViz:
+
+```bash
+ros2 launch edgeai_robot_description bringup.launch.py
+```
+
+To enable autonomous exploration:
+
+```bash
+ros2 launch edgeai_robot_description bringup.launch.py explore:=true
+```
