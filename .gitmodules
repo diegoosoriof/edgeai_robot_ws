@@ -1,0 +1,3 @@
+[submodule "src/mrtsp_exploration_ros2"]
+	path = src/mrtsp_exploration_ros2
+	url = https://github.com/mertgulerx/mrtsp_exploration_ros2.git
