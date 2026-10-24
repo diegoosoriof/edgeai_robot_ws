@@ -239,11 +239,11 @@ Visualization Manager:
       Class: rviz_default_plugins/Map
       Color Scheme: map
       Draw Behind: false
-      Enabled: false
+      Enabled: true
       Name: Map
       Topic:
         Depth: 5
-        Durability Policy: Volatile
+        Durability Policy: Transient Local
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
@@ -255,11 +255,11 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /map_updates
       Use Timestamp: false
-      Value: false
+      Value: True
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: odom
+    Fixed Frame: map
     Frame Rate: 30
   Name: root
   Tools:

@@ -60,7 +60,7 @@ def generate_launch_description():
         executable='robot_state_publisher',
         name='robot_state_publisher',
         output='screen',
-        parameters=[robot_description]
+        parameters=[robot_description, {'use_sim_time': True}]
     )
 
     # Spawn the new robot
@@ -122,6 +122,23 @@ def generate_launch_description():
             'edgeai_robot_real/base_footprint/rgbd_camera',
         ]
     )
+    slam = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('slam_toolbox'),
+                'launch',
+                'online_async_launch.py'
+            )
+        ),
+        launch_arguments={
+            'slam_params_file': os.path.join(
+                pkg_share, 'config', 'slam_toolbox.yaml'
+            ),
+            'use_sim_time': 'true',
+            'autostart': 'true',
+            'use_lifecycle_manager': 'false',
+        }.items()
+    )
 
     return LaunchDescription([
         gazebo,
@@ -129,4 +146,5 @@ def generate_launch_description():
         spawn_robot,
         bridge,
         camera_sensor_tf,
+        slam,
     ])
