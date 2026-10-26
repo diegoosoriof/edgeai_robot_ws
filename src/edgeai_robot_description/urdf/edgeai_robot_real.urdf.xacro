@@ -3,6 +3,21 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro"
        name="edgeai_robot_real">
 
+  <!-- Multi-robot configuration -->
+  <xacro:arg name="robot_ns" default=""/>
+
+  <xacro:property
+    name="robot_ns"
+    value="$(arg robot_ns)"/>
+
+  <xacro:property
+    name="frame_prefix"
+    value="${robot_ns + '/' if robot_ns else ''}"/>
+
+  <xacro:property
+    name="topic_prefix"
+    value="${'/' + robot_ns if robot_ns else ''}"/>
+
   <!-- Parameters -->
 
   <!-- Lower folded-aluminum chassis -->
@@ -650,9 +665,9 @@
     <always_on>true</always_on>
     <update_rate>30</update_rate>
 
-    <topic>camera</topic>
+    <topic>${topic_prefix + "/camera" if robot_ns else "camera"}</topic>
 
-    <optical_frame_id>camera_optical_frame</optical_frame_id>
+    <optical_frame_id>${frame_prefix}camera_optical_frame</optical_frame_id>
 
     <camera>
 
@@ -728,10 +743,10 @@
       <pose>0 0 0 0 0 0</pose>
 
       <!-- Gazebo Transport topic -->
-      <topic>/scan</topic>
+      <topic>${topic_prefix}/scan</topic>
 
       <!-- Frame carried in the LiDAR message -->
-      <gz_frame_id>lidar_link</gz_frame_id>
+      <gz_frame_id>${frame_prefix}lidar_link</gz_frame_id>
 
       <update_rate>10</update_rate>
 
@@ -777,13 +792,13 @@
       <wheel_radius>${wheel_radius}</wheel_radius>
 
       <!-- Gazebo command / odometry topics -->
-      <topic>/cmd_vel</topic>
-      <odom_topic>/odom</odom_topic>
-      <tf_topic>/tf</tf_topic>
+      <topic>${topic_prefix}/cmd_vel</topic>
+      <odom_topic>${topic_prefix}/odom</odom_topic>
+      <tf_topic>${topic_prefix}/tf</tf_topic>
 
       <!-- Odometry frame -->
-      <frame_id>odom</frame_id>
-      <child_frame_id>base_footprint</child_frame_id>
+      <frame_id>${frame_prefix}odom</frame_id>
+      <child_frame_id>${frame_prefix}base_footprint</child_frame_id>
 
       <!-- Odometry publishing -->
       <odom_publish_frequency>50</odom_publish_frequency>
@@ -795,7 +810,7 @@
   <plugin
     filename="gz-sim-joint-state-publisher-system"
     name="gz::sim::systems::JointStatePublisher">
-    <topic>joint_states</topic>
+    <topic>${topic_prefix + "/joint_states" if robot_ns else "joint_states"}</topic>
   </plugin>
 </gazebo>
 </robot>
