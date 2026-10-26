@@ -137,3 +137,25 @@ src/edgeai_robot_description/
   config/slam_toolbox.yaml           Mapping parameters
   maps/                             Packaged map resources
 ```
+## Multi-Robot Simulation
+
+Launch 1–10 independent robots in Gazebo with automatic RViz visualization, separate ROS 2 topics, LiDAR, odometry, and TF.
+
+### Setup
+
+```bash
+pixi install
+pixi run colcon build --symlink-install
+```
+
+### Run
+
+```bash
+pixi run bash -c 'source install/setup.bash && ros2 launch edgeai_robot_description multi_robot_sim.launch.py num_robots:=2'
+```
+
+Change `num_robots:=2` to the desired number of robots (1–10).
+
+Gazebo and RViz launch automatically, displaying each robot with its own LiDAR data.
+
+**Note:** The original `./start_sim.sh` remains available for single-robot simulation. SLAM mapping is handled separately.
