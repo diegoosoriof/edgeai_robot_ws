@@ -1,0 +1,816 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"
+       name="edgeai_robot_real">
+
+  <!-- Multi-robot configuration -->
+  <xacro:arg name="robot_ns" default=""/>
+
+  <xacro:property
+    name="robot_ns"
+    value="$(arg robot_ns)"/>
+
+  <xacro:property
+    name="frame_prefix"
+    value="${robot_ns + '/' if robot_ns else ''}"/>
+
+  <xacro:property
+    name="topic_prefix"
+    value="${'/' + robot_ns if robot_ns else ''}"/>
+
+  <!-- Parameters -->
+
+  <!-- Lower folded-aluminum chassis -->
+  <xacro:property name="lower_length" value="0.300"/>
+  <xacro:property name="lower_width"  value="0.265"/>
+  <xacro:property name="lower_height" value="0.070"/>
+
+  <!-- Upper aluminum plate -->
+  <xacro:property name="plate_length"    value="0.375"/>
+  <xacro:property name="plate_width"     value="0.265"/>
+  <xacro:property name="plate_thickness" value="0.003"/>
+
+  <!-- Temporary mass -->
+  <xacro:property name="base_mass" value="5.0"/>
+
+  <!-- Drive wheels -->
+  <xacro:property name="wheel_radius" value="0.049"/>
+  <xacro:property name="wheel_width" value="0.020"/>
+  <xacro:property name="wheel_separation" value="0.300"/>
+  <xacro:property name="wheel_x" value="0.0875"/>
+  <xacro:property name="wheel_mass" value="0.20"/>
+
+    <!-- Rear caster parameters -->
+
+  <!-- Caster wheel -->
+  <xacro:property name="caster_wheel_radius" value="0.025"/>
+  <xacro:property name="caster_wheel_width"  value="0.020"/>
+  <xacro:property name="caster_wheel_mass"   value="0.05"/>
+
+  <!-- Swivel pivot position -->
+  <xacro:property name="caster_x" value="-0.1675"/>
+  <xacro:property name="caster_y" value="0.1125"/>
+
+  <!-- Estimated trailing offset: pivot -> wheel axle -->
+  <xacro:property name="caster_offset" value="0.025"/>
+
+  <!-- Simplified fork geometry -->
+  <xacro:property name="caster_fork_width"     value="0.025"/>
+  <xacro:property name="caster_fork_thickness" value="0.008"/>
+
+  <!-- Swivel bearing -->
+<xacro:property name="caster_bearing_radius" value="0.015"/>
+<xacro:property name="caster_bearing_height" value="0.005"/>
+
+
+  <!-- Ground reference -->
+
+  <link name="base_footprint"/>
+
+
+  <!-- Main chassis -->
+
+  <link name="base_link">
+
+    <!-- Lower folded-aluminum chassis -->
+    <!-- Front edge aligned with upper plate -->
+
+    <visual name="lower_chassis_visual">
+      <origin xyz="0.0375 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${lower_length} ${lower_width} ${lower_height}"/>
+      </geometry>
+      <material name="lower_chassis_gray">
+        <color rgba="0.55 0.55 0.55 1.0"/>
+      </material>
+    </visual>
+
+    <collision name="lower_chassis_collision">
+      <origin xyz="0.0375 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${lower_length} ${lower_width} ${lower_height}"/>
+      </geometry>
+    </collision>
+
+
+    <!-- Upper aluminum plate -->
+
+    <visual name="upper_plate_visual">
+      <origin xyz="0 0 0.0365" rpy="0 0 0"/>
+      <geometry>
+        <box size="${plate_length} ${plate_width} ${plate_thickness}"/>
+      </geometry>
+      <material name="upper_plate_gray">
+        <color rgba="0.75 0.75 0.75 1.0"/>
+      </material>
+    </visual>
+
+    <collision name="upper_plate_collision">
+      <origin xyz="0 0 0.0365" rpy="0 0 0"/>
+      <geometry>
+        <box size="${plate_length} ${plate_width} ${plate_thickness}"/>
+      </geometry>
+    </collision>
+
+
+    <!-- Temporary inertia -->
+
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="${base_mass}"/>
+      <inertia
+        ixx="0.035"
+        ixy="0"
+        ixz="0"
+        iyy="0.060"
+        iyz="0"
+        izz="0.085"/>
+    </inertial>
+
+  </link>
+
+
+  <!-- Fixed connection between ground reference and chassis -->
+
+  <joint name="base_footprint_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 0.049" rpy="0 0 0"/>
+  </joint>
+
+
+  <!-- Left drive wheel -->
+
+  <link name="left_wheel_link">
+
+    <visual>
+      <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="drive_wheel_green">
+        <color rgba="0.10 0.65 0.20 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia
+        ixx="0.00013"
+        ixy="0"
+        ixz="0"
+        iyy="0.00024"
+        iyz="0"
+        izz="0.00013"/>
+    </inertial>
+
+  </link>
+
+  <joint name="left_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="left_wheel_link"/>
+
+    <origin
+      xyz="${wheel_x} ${wheel_separation/2} 0"
+      rpy="0 0 0"/>
+
+    <axis xyz="0 1 0"/>
+  </joint>
+
+
+  <!-- Right drive wheel -->
+
+  <link name="right_wheel_link">
+
+    <visual>
+      <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+      <material name="drive_wheel_green">
+        <color rgba="0.10 0.65 0.20 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0" rpy="${pi/2} 0 0"/>
+      <geometry>
+        <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia
+        ixx="0.00013"
+        ixy="0"
+        ixz="0"
+        iyy="0.00024"
+        iyz="0"
+        izz="0.00013"/>
+    </inertial>
+
+  </link>
+
+  <joint name="right_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="right_wheel_link"/>
+
+    <origin
+      xyz="${wheel_x} ${-wheel_separation/2} 0"
+      rpy="0 0 0"/>
+
+    <axis xyz="0 1 0"/>
+  </joint>
+
+   <!-- Left rear caster -->
+
+  <!-- Swivel / fork link -->
+  <link name="left_caster_fork_link">
+
+  <!-- Swivel bearing -->
+  <visual name="left_caster_bearing_visual">
+
+    <!-- Top surface touches the underside of the upper plate -->
+    <origin
+      xyz="0 0 ${-caster_bearing_height/2}"
+      rpy="0 0 0"/>
+
+    <geometry>
+      <cylinder
+        radius="${caster_bearing_radius}"
+        length="${caster_bearing_height}"/>
+    </geometry>
+
+    <material name="caster_bearing_silver">
+      <color rgba="0.65 0.65 0.65 1.0"/>
+    </material>
+
+  </visual>
+
+    <!-- Vertical part of fork -->
+    <visual name="left_caster_vertical_visual">
+      <origin xyz="0 0 -0.0295" rpy="0 0 0"/>
+
+      <geometry>
+        <box size="
+          ${caster_fork_thickness}
+          ${caster_fork_width}
+          0.059"/>
+      </geometry>
+
+      <material name="caster_fork_gray">
+        <color rgba="0.35 0.35 0.35 1.0"/>
+      </material>
+    </visual>
+
+
+    <!-- Horizontal trailing arm -->
+    <visual name="left_caster_arm_visual">
+
+      <origin
+        xyz="${-caster_offset/2} 0 -0.059"
+        rpy="0 0 0"/>
+
+      <geometry>
+        <box size="
+          ${caster_offset}
+          ${caster_fork_width}
+          ${caster_fork_thickness}"/>
+      </geometry>
+
+      <material name="caster_fork_gray"/>
+    </visual>
+
+
+    <inertial>
+      <origin xyz="0 0 -0.0295" rpy="0 0 0"/>
+      <mass value="0.05"/>
+
+      <inertia
+        ixx="0.00002"
+        ixy="0"
+        ixz="0"
+        iyy="0.00002"
+        iyz="0"
+        izz="0.00002"/>
+    </inertial>
+
+  </link>
+
+
+  <!-- Caster steering -->
+  <joint name="left_caster_swivel_joint"
+         type="continuous">
+
+    <parent link="base_link"/>
+    <child link="left_caster_fork_link"/>
+
+    <origin
+      xyz="${caster_x} ${caster_y} 0.035"
+      rpy="0 0 0"/>
+
+    <!-- Vertical steering axis -->
+    <axis xyz="0 0 1"/>
+
+  </joint>
+
+
+  <!-- Left caster wheel -->
+
+  <link name="left_caster_wheel_link">
+
+    <visual>
+
+      <origin xyz="0 0 0"
+              rpy="${pi/2} 0 0"/>
+
+      <geometry>
+        <cylinder
+          radius="${caster_wheel_radius}"
+          length="${caster_wheel_width}"/>
+      </geometry>
+
+      <material name="caster_wheel_black">
+        <color rgba="0.08 0.08 0.08 1.0"/>
+      </material>
+
+    </visual>
+
+
+    <collision>
+
+      <origin xyz="0 0 0"
+              rpy="${pi/2} 0 0"/>
+
+      <geometry>
+        <cylinder
+          radius="${caster_wheel_radius}"
+          length="${caster_wheel_width}"/>
+      </geometry>
+
+    </collision>
+
+
+    <inertial>
+
+      <mass value="${caster_wheel_mass}"/>
+
+      <inertia
+        ixx="0.00001"
+        ixy="0"
+        ixz="0"
+        iyy="0.00002"
+        iyz="0"
+        izz="0.00001"/>
+
+    </inertial>
+
+  </link>
+
+
+  <!-- Caster wheel rolling joint -->
+
+  <joint name="left_caster_wheel_joint"
+         type="continuous">
+
+    <parent link="left_caster_fork_link"/>
+    <child link="left_caster_wheel_link"/>
+
+    <origin
+      xyz="${-caster_offset} 0 -0.059"
+      rpy="0 0 0"/>
+
+    <axis xyz="0 1 0"/>
+
+  </joint>
+
+    <!-- Right rear caster -->
+
+  <!-- Swivel / fork link -->
+  <link name="right_caster_fork_link">
+
+  <!-- Swivel bearing -->
+  <visual name="right_caster_bearing_visual">
+
+    <!-- Top surface touches the underside of the upper plate -->
+    <origin
+      xyz="0 0 ${-caster_bearing_height/2}"
+      rpy="0 0 0"/>
+
+    <geometry>
+      <cylinder
+        radius="${caster_bearing_radius}"
+        length="${caster_bearing_height}"/>
+    </geometry>
+
+    <material name="caster_bearing_silver"/>
+
+  </visual>
+
+    <!-- Vertical part of fork -->
+    <visual name="right_caster_vertical_visual">
+
+      <origin xyz="0 0 -0.0295"
+              rpy="0 0 0"/>
+
+      <geometry>
+        <box size="
+          ${caster_fork_thickness}
+          ${caster_fork_width}
+          0.059"/>
+      </geometry>
+
+      <material name="caster_fork_gray"/>
+    </visual>
+
+
+    <!-- Horizontal trailing arm -->
+    <visual name="right_caster_arm_visual">
+
+      <origin
+        xyz="${-caster_offset/2} 0 -0.059"
+        rpy="0 0 0"/>
+
+      <geometry>
+        <box size="
+          ${caster_offset}
+          ${caster_fork_width}
+          ${caster_fork_thickness}"/>
+      </geometry>
+
+      <material name="caster_fork_gray"/>
+    </visual>
+
+
+    <inertial>
+
+      <origin xyz="0 0 -0.0295"
+              rpy="0 0 0"/>
+
+      <mass value="0.05"/>
+
+      <inertia
+        ixx="0.00002"
+        ixy="0"
+        ixz="0"
+        iyy="0.00002"
+        iyz="0"
+        izz="0.00002"/>
+
+    </inertial>
+
+  </link>
+
+
+  <!-- Caster steering -->
+  <joint name="right_caster_swivel_joint"
+         type="continuous">
+
+    <parent link="base_link"/>
+    <child link="right_caster_fork_link"/>
+
+    <origin
+      xyz="${caster_x} ${-caster_y} 0.035"
+      rpy="0 0 0"/>
+
+    <axis xyz="0 0 1"/>
+
+  </joint>
+
+
+  <!-- Right caster wheel -->
+
+  <link name="right_caster_wheel_link">
+
+    <visual>
+
+      <origin xyz="0 0 0"
+              rpy="${pi/2} 0 0"/>
+
+      <geometry>
+        <cylinder
+          radius="${caster_wheel_radius}"
+          length="${caster_wheel_width}"/>
+      </geometry>
+
+      <material name="caster_wheel_black"/>
+
+    </visual>
+
+
+    <collision>
+
+      <origin xyz="0 0 0"
+              rpy="${pi/2} 0 0"/>
+
+      <geometry>
+        <cylinder
+          radius="${caster_wheel_radius}"
+          length="${caster_wheel_width}"/>
+      </geometry>
+
+    </collision>
+
+
+    <inertial>
+
+      <mass value="${caster_wheel_mass}"/>
+
+      <inertia
+        ixx="0.00001"
+        ixy="0"
+        ixz="0"
+        iyy="0.00002"
+        iyz="0"
+        izz="0.00001"/>
+
+    </inertial>
+
+  </link>
+
+
+  <!-- Caster wheel rolling joint -->
+
+  <joint name="right_caster_wheel_joint"
+         type="continuous">
+
+    <parent link="right_caster_fork_link"/>
+    <child link="right_caster_wheel_link"/>
+
+    <origin
+      xyz="${-caster_offset} 0 -0.059"
+      rpy="0 0 0"/>
+
+    <axis xyz="0 1 0"/>
+
+  </joint>
+
+
+
+  <!-- ====================================================== -->
+  <!-- LiDAR mounting support -->
+  <!-- ====================================================== -->
+
+  <link name="lidar_support_link">
+
+    <visual>
+      <!--
+        Support bottom: z = 0.038 m
+        Support top:    z = 0.086 m
+        Height:         0.048 m
+      -->
+      <geometry>
+        <cylinder radius="0.025" length="0.048"/>
+      </geometry>
+
+      <material name="lidar_support_gray">
+        <color rgba="0.4 0.4 0.4 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder radius="0.025" length="0.048"/>
+      </geometry>
+    </collision>
+
+  </link>
+
+
+  <joint name="lidar_support_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="lidar_support_link"/>
+
+    <!--
+      Center height:
+      0.038 + 0.048/2 = 0.062 m
+    -->
+    <origin xyz="0.10 0.08 0.062" rpy="0 0 0"/>
+  </joint>
+
+
+  <!-- ====================================================== -->
+<!-- RGB-D Camera body                                      -->
+<!-- ====================================================== -->
+
+<link name="camera_link">
+
+  <visual>
+    <geometry>
+      <box size="0.030 0.090 0.025"/>
+    </geometry>
+
+    <material name="camera_black">
+      <color rgba="0.08 0.08 0.08 1.0"/>
+    </material>
+  </visual>
+
+  <collision>
+    <geometry>
+      <box size="0.030 0.090 0.025"/>
+    </geometry>
+  </collision>
+
+</link>
+
+
+<joint name="camera_joint" type="fixed">
+
+  <parent link="base_link"/>
+  <child link="camera_link"/>
+
+  <origin
+    xyz="0.175 0 0.051"
+    rpy="0 0 0"/>
+
+</joint>
+
+<!-- ====================================================== -->
+<!-- RGB-D Camera frames                                    -->
+<!-- ====================================================== -->
+
+<link name="camera_optical_frame"/>
+
+<joint name="camera_optical_joint" type="fixed">
+
+  <parent link="camera_link"/>
+  <child link="camera_optical_frame"/>
+
+  <!-- ROS optical frame convention:
+       x right, y down, z forward -->
+  <origin
+    xyz="0 0 0"
+    rpy="-1.5708 0 -1.5708"/>
+
+</joint>
+
+
+
+<!-- ====================================================== -->
+<!-- Gazebo RGB-D Camera sensor                             -->
+<!-- ====================================================== -->
+
+<gazebo reference="camera_link">
+
+  <sensor name="rgbd_camera" type="rgbd_camera">
+
+    <always_on>true</always_on>
+    <update_rate>30</update_rate>
+
+    <topic>${topic_prefix + "/camera" if robot_ns else "camera"}</topic>
+
+    <optical_frame_id>${frame_prefix}camera_optical_frame</optical_frame_id>
+
+    <camera>
+
+      <horizontal_fov>1.047</horizontal_fov>
+
+      <image>
+        <width>640</width>
+        <height>480</height>
+        <format>R8G8B8</format>
+      </image>
+
+      <clip>
+        <near>0.10</near>
+        <far>10.0</far>
+      </clip>
+
+    </camera>
+
+  </sensor>
+
+</gazebo>
+
+
+
+  <!-- ====================================================== -->
+  <!-- LiDAR body -->
+  <!-- ====================================================== -->
+
+  <link name="lidar_link">
+
+    <visual>
+      <geometry>
+        <cylinder radius="0.035" length="0.040"/>
+      </geometry>
+
+      <material name="lidar_black">
+        <color rgba="0.08 0.08 0.08 1.0"/>
+      </material>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder radius="0.035" length="0.040"/>
+      </geometry>
+    </collision>
+
+  </link>
+
+
+  <joint name="lidar_joint" type="fixed">
+    <parent link="lidar_support_link"/>
+    <child link="lidar_link"/>
+
+    <!--
+      Support center = 0.062 m
+      Support top    = 0.086 m
+      LiDAR center   = 0.106 m
+
+      Relative offset:
+      0.106 - 0.062 = 0.044 m
+    -->
+    <origin xyz="0 0 0.044" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ====================================================== -->
+  <!-- Gazebo LiDAR sensor                                   -->
+  <!-- ====================================================== -->
+
+  <gazebo reference="lidar_link">
+
+    <sensor name="lidar_sensor" type="gpu_lidar">
+
+      <pose>0 0 0 0 0 0</pose>
+
+      <!-- Gazebo Transport topic -->
+      <topic>${topic_prefix}/scan</topic>
+
+      <!-- Frame carried in the LiDAR message -->
+      <gz_frame_id>${frame_prefix}lidar_link</gz_frame_id>
+
+      <update_rate>10</update_rate>
+
+      <lidar>
+
+        <scan>
+          <horizontal>
+            <samples>360</samples>
+            <resolution>1</resolution>
+            <min_angle>-3.14159</min_angle>
+            <max_angle>3.14159</max_angle>
+          </horizontal>
+        </scan>
+
+        <range>
+          <min>0.15</min>
+          <max>12.0</max>
+          <resolution>0.01</resolution>
+        </range>
+
+      </lidar>
+
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+
+    </sensor>
+
+  </gazebo>
+
+  <!-- Gazebo DiffDrive plugin -->
+
+  <gazebo>
+    <plugin
+      filename="gz-sim-diff-drive-system"
+      name="gz::sim::systems::DiffDrive">
+
+      <!-- Drive wheel joints -->
+      <left_joint>left_wheel_joint</left_joint>
+      <right_joint>right_wheel_joint</right_joint>
+
+      <!-- Robot geometry -->
+      <wheel_separation>${wheel_separation}</wheel_separation>
+      <wheel_radius>${wheel_radius}</wheel_radius>
+
+      <!-- Gazebo command / odometry topics -->
+      <topic>${topic_prefix}/cmd_vel</topic>
+      <odom_topic>${topic_prefix}/odom</odom_topic>
+      <tf_topic>${topic_prefix}/tf</tf_topic>
+
+      <!-- Odometry frame -->
+      <frame_id>${frame_prefix}odom</frame_id>
+      <child_frame_id>${frame_prefix}base_footprint</child_frame_id>
+
+      <!-- Odometry publishing -->
+      <odom_publish_frequency>50</odom_publish_frequency>
+
+    </plugin>
+  </gazebo>
+
+  <gazebo>
+  <plugin
+    filename="gz-sim-joint-state-publisher-system"
+    name="gz::sim::systems::JointStatePublisher">
+    <topic>${topic_prefix + "/joint_states" if robot_ns else "joint_states"}</topic>
+  </plugin>
+</gazebo>
+</robot>

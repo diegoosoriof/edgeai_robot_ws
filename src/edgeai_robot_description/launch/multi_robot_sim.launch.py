@@ -212,7 +212,7 @@ def generate_launch_description():
     pkg_share = get_package_share_directory(package_name)
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
-    xacro_file = os.path.join(pkg_share, 'urdf', 'edgeai_robot_real.urdf.xacro')
+    xacro_file = os.path.join(pkg_share, 'urdf', 'edgeai_robot_real_multi.urdf.xacro')
     world_file = os.path.join(pkg_share, 'worlds', 'empty.sdf')
     rviz_template = os.path.join(pkg_share, 'rviz', 'multi_robot.rviz')
 
