@@ -158,12 +158,25 @@ Launch 1–10 independent robots in Gazebo with automatic RViz visualization, se
 ```bash
 pixi install
 pixi run colcon build --symlink-install
+pixi shell
 ```
 
 ### Run
 
 ```bash
-pixi run bash -c 'source install/setup.bash && ros2 launch edgeai_robot_description multi_robot_sim.launch.py num_robots:=2'
+ros2 launch edgeai_robot_description multi_robot_sim.launch.py num_robots:=2
+ros2 launch edgeai_robot_description multi_robot.launch.py
+
+ros2 run tf2_ros static_transform_publisher \
+  --x 0 --y 0 --z 0 \
+  --roll 0 --pitch 0 --yaw 0 \
+  --frame-id  robot1/map \
+  --child-frame-id robot2/map
+```
+
+To teleop
+```bash
+ros2 run edgeai_robot_description teleop.py  --ros-args -r /cmd_vel:=/robot1/cmd_vel
 ```
 
 Change `num_robots:=2` to the desired number of robots (1–10).
