@@ -20,6 +20,17 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <depend>rclcpp</depend>
+  <depend>nav_msgs</depend>
+  <build_depend>geometry_msgs</build_depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>visualization_msgs</depend>
+  <depend>tf2</depend>
+  <build_depend>tf2_ros</build_depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>opencv</depend>
+
   <exec_depend>rclpy</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>xacro</exec_depend>

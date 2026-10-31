@@ -7,9 +7,25 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(OpenCV REQUIRED COMPONENTS core imgproc flann)
+
+add_executable(map_alignment_node src/map_alignment_node.cpp)
+target_compile_features(map_alignment_node PUBLIC cxx_std_17)
+target_include_directories(map_alignment_node PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(map_alignment_node ${OpenCV_LIBRARIES})
+ament_target_dependencies(map_alignment_node
+  rclcpp nav_msgs geometry_msgs std_msgs std_srvs visualization_msgs
+  tf2 tf2_ros tf2_geometry_msgs)
+install(TARGETS map_alignment_node DESTINATION lib/${PROJECT_NAME})
 
 install(
   DIRECTORY

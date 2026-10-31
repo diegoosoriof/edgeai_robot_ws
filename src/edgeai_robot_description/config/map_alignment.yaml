@@ -1,0 +1,30 @@
+map_alignment:
+  ros__parameters:
+    use_sim_time: true
+    map1_topic: /robot1/map
+    map2_topic: /robot2/map
+    source_frame: robot2/map
+    target_frame: robot1/map
+    search_radius: 2.0
+    coarse_xy_step: 0.25
+    coarse_theta_step_deg: 4.0
+    coarse_point_stride: 4
+    top_k: 10
+    nms_distance: 0.5
+    nms_angle_deg: 15.0
+    max_correspondence_distance: 0.5
+    icp_max_correspondence_distance: 0.5
+    icp_max_iterations: 50
+    icp_epsilon: 0.0001
+    min_overlap_points: 30
+    accept_score: 0.125
+    ambiguity_ratio_threshold: 0.9
+    stable_count: 3
+    stable_translation_tol: 0.1
+    stable_rotation_tol_deg: 2.0
+    occupied_threshold: 90
+    free_threshold: 20
+    occupied_point_sampling_step: 1
+    publish_tf: true
+    enable_markers: true 
+    self_test: false

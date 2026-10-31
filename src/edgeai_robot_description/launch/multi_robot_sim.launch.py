@@ -28,7 +28,7 @@ LIDAR_COLORS = [
 
 def robot_spawn_position(index):
     """Return the world position for zero-based robot index."""
-    return -2.0 + 2.0 * index, 0.0, 0.01
+    return -2.0 + 0.8 * index, 0.0, 0.01
 
 
 def create_rviz_config(template_path, num_robots):
