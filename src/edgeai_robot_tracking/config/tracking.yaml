@@ -1,0 +1,61 @@
+/**:
+  ros__parameters:
+    # Topics are relative to observer_ns. Frames are set by the dedicated launcher.
+    rgb_topic: camera/image
+    depth_topic: camera/depth_image
+    camera_info_topic: camera/camera_info
+    depth_camera_info_topic: camera/camera_info
+    # One Gazebo RGB-D rendering camera supplies registered RGB/depth at 640x480.
+    depth_registered: true
+    uint16_depth_scale: 0.001  # used only for real-camera 16UC1; 32FC1 is metres
+    min_depth: 0.10
+    max_depth: 9.5
+    sync_slop: 0.025
+    sync_queue: 10
+    max_message_age: 0.5
+    camera_info_timeout: 2.0
+    processing_hz: 10.0
+    output_delay: 0.06
+    debug_image: true
+    debug_markers: true
+    debug_cluster: true
+
+    detection:
+      # OpenCV H: 0..179. Model drive_wheel_green is RGB (0.10, 0.65, 0.20).
+      hsv_lower: [35, 65, 35]
+      hsv_upper: [90, 255, 255]
+      min_green_area: 3
+      morphology_size: 0  # opening can erase distant wheels; disabled by default
+      max_candidates: 12
+      min_seed_depths: 3
+      seed_depth_band: 0.08
+      min_seed_fraction: 0.35
+      # Heights relative to observer base_footprint on a common flat floor.
+      floor_height: 0.0
+      floor_clearance: 0.012
+      seed_min_height: 0.015
+      seed_max_height: 0.15
+      max_height: 0.38
+      # Chassis 0.375 x 0.265 m; drive-wheel envelope ~0.32 m wide,
+      # wheel diameter 0.098 m. Partial wheel-only surfaces are allowed.
+      region_radius: 0.48
+      cluster_stride: 2
+      connect_distance: 0.065
+      max_cluster_pixels: 16000
+      min_cluster_points: 6
+      min_visible_width: 0.025
+      min_visible_height: 0.025
+      max_visible_width: 0.58
+      max_visible_diagonal: 0.75  # includes rotation of axis-aligned visible bounds
+      duplicate_overlap: 0.35
+
+    tracking:
+      timeout: 1.0
+      confirmation_hits: 2
+      acceleration_std: 1.0
+      measurement_std: 0.07  # includes changing visible-surface centroid, not just depth noise
+      association_distance: 0.7
+      max_speed: 1.0
+      jump_allowance: 0.20
+      mahalanobis_gate: 11.35
+      ambiguity_margin: 1.0

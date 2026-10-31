@@ -177,3 +177,15 @@ Replace `N` with the robot number (e.g., `/robot1/scan`, `/robot2/scan`).
 
 All robots use separate topics and TF frames, allowing independent control and sensor processing.
 
+## RGB-D detection and tracking experiment
+
+The separate `edgeai_robot_tracking` package offers the original `green_seeds`
+RGB/depth detector and a colour-independent native-depth `geometry` detector,
+selected with `detection_method` on the same launcher. Both track a visible surface
+position using the same filter and timestamped observer TF. Geometry mode works
+without RGB. The package also provides keyboard control for a selectable robot. Existing
+simulation launchers keep their default behavior.
+
+See [the experiment guide](docs/robot_tracking.md) for build and launch commands,
+camera/frame contracts, output semantics, tuning, tests and a manual test procedure.
+

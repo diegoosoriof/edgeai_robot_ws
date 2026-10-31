@@ -7,8 +7,9 @@ import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 
 
@@ -155,6 +156,23 @@ def spawn_robots(context, xacro_file, rviz_template):
         ))
 
         robot_nodes.append(Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name=f'camera_sensor_tf_{robot_name}',
+            output='screen',
+            parameters=[{'use_sim_time': True}],
+            # Gazebo's cloud uses this scoped sensor frame after fixed-joint
+            # reduction. It has the same pose as the URDF camera_link.
+            arguments=[
+                '--x', '0', '--y', '0', '--z', '0',
+                '--roll', '0', '--pitch', '0', '--yaw', '0',
+                '--frame-id', f'{robot_name}/camera_link',
+                '--child-frame-id',
+                f'{robot_name}/base_footprint/rgbd_camera',
+            ],
+        ))
+
+        robot_nodes.append(Node(
             package='ros_gz_sim',
             executable='create',
             name=f'spawn_{robot_name}',
@@ -203,6 +221,7 @@ def spawn_robots(context, xacro_file, rviz_template):
         output='screen',
         arguments=['-d', rviz_config],
         parameters=[{'use_sim_time': True}],
+        condition=IfCondition(LaunchConfiguration('gui', default='true')),
     ))
     return robot_nodes
 
@@ -220,12 +239,21 @@ def generate_launch_description():
         'num_robots', default_value='2',
         description='Number of robots to spawn (1-10)',
     )
+    gui_arg = DeclareLaunchArgument(
+        'gui', default_value='true',
+        description='Start Gazebo GUI and RViz; false uses headless sensor rendering',
+    )
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')
         ),
-        launch_arguments={'gz_args': f'-r {world_file}'}.items(),
+        launch_arguments={
+            'gz_args': [f'-r {world_file}', PythonExpression([
+                "'' if '", LaunchConfiguration('gui'),
+                "'.lower() == 'true' else ' -s --headless-rendering'",
+            ])],
+        }.items(),
     )
 
     robots = OpaqueFunction(
@@ -243,6 +271,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         num_robots_arg,
+        gui_arg,
         gazebo,
         clock_bridge,
         robots,
