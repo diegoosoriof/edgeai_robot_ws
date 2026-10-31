@@ -16,10 +16,10 @@ map_alignment:
     icp_max_correspondence_distance: 0.5
     icp_max_iterations: 50
     icp_epsilon: 0.0001
-    min_overlap_points: 30
+    min_overlap_points: 100
     accept_score: 0.125
-    ambiguity_ratio_threshold: 0.9
-    stable_count: 3
+    ambiguity_ratio_threshold: 0.5
+    stable_count: 100
     stable_translation_tol: 0.1
     stable_rotation_tol_deg: 2.0
     occupied_threshold: 90

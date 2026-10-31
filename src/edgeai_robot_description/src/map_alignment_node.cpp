@@ -501,11 +501,22 @@ private:
       std::sort(finals.begin(),finals.end(),[](auto&u,auto&v){
         return u.score < v.score;
       });
+
+      std::vector<Result> distinct;
+      for (auto &r : finals) {
+        bool dup = false;
+        for (auto &d : distinct)
+          if (std::hypot(r.pose.x - d.pose.x, r.pose.y - d.pose.y) < 0.3 &&
+              std::abs(angleDiff(r.pose.a, d.pose.a)) * 180 / kPi < 10) { dup = true; break; }
+        if (!dup) distinct.push_back(r);
+      }
+      finals.swap(distinct);
+
       if(finals.empty())
         continue;
       Result best = finals[0];
-      double second = finals.size() > 1?finals[1].score:best.score;
-      double ratio = second > 1e-12?best.score / second:0;
+      double second = finals.size() > 1 ? finals[1].score : best.score;
+      double ratio  = finals.size() > 1 && second > 1e-12 ? best.score / second : 0;
       bool converged = best.score < p_.accept&&best.overlap >= static_cast<size_t>(p_.mino)&&ratio < p_.ambig;
       bool latched = false;
       {
@@ -515,7 +526,7 @@ private:
         if(converged)
         {
           if (stable_ == 0 ||
-              std::hypot(best.pose.x, last_.x) > p_.stablexy ||
+              std::hypot(best.pose.x - last_.x, best.pose.y - last_.y) > p_.stablexy ||
               std::abs(angleDiff(best.pose.a, last_.a)) * 180 / kPi > p_.stablea) {
             stable_ = 1;
           } else {
