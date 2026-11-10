@@ -43,7 +43,8 @@ sleep 5
 echo "Starting RViz..."
 
 rviz2 -d \
-    "$WS_DIR/src/edgeai_robot_description/rviz/realistic_robot.rviz" &
+    "$WS_DIR/src/edgeai_robot_description/rviz/realistic_robot.rviz" \
+    --ros-args -p use_sim_time:=true &
 RVIZ_PID=$!
 CHILD_PIDS+=("$RVIZ_PID")
 
