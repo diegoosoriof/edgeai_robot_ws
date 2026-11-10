@@ -1,0 +1,25 @@
+/**:
+  ros__parameters:
+    # Competition placeholders. Detector accepts every ID in this dictionary.
+    dictionary: DICT_4X4_50
+    marker_size: 0.20  # Outer black square side, metres; excludes white margin.
+    # Optional paired arrays for differently sized markers, e.g. [1, 7] / [0.2, 0.3].
+    # marker_size_ids: [1, 7]
+    # marker_sizes: [0.2, 0.3]
+    # Relative topics also work under a robot namespace.
+    image_topic: camera/image
+    camera_info_topic: camera/camera_info
+    # Gazebo labels images/calibration with its native X-forward sensor frame.
+    # OpenCV poses use the separate ROS optical frame below. Keeping the native
+    # sensor label also keeps /camera/points aligned with the robot in RViz.
+    input_frame: edgeai_robot_real/base_footprint/rgbd_camera
+    optical_frame: camera_optical_frame
+    detections_topic: aruco/detections
+    ids_topic: aruco/ids
+    poses_topic: aruco/poses
+    debug_image_topic: aruco/debug_image
+    publish_debug_image: true
+    axis_length: 0.10
+    max_reprojection_error: 3.0  # RMS corner error, pixels.
+    publish_tf: false
+    tf_child_prefix: aruco_marker_
