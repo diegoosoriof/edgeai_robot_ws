@@ -1,0 +1,9 @@
+# Initial world poses. Shared by Gazebo spawning and RViz's odometry anchors.
+robot1:
+  x: 0.45
+  y: 0.45
+  yaw: 1.570796326795
+robot2:
+  x: 1.00
+  y: 0.45
+  yaw: 1.570796326795

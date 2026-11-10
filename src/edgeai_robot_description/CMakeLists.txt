@@ -23,6 +23,14 @@ install(
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(PROGRAMS scripts/generate_rescue_targets.py
+  DESTINATION lib/${PROJECT_NAME})
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(rescue_arena test/test_rescue_arena.py)
+endif()
+
 #if(BUILD_TESTING)
 #  find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

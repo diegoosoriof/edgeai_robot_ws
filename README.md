@@ -11,6 +11,9 @@ A ROS 2 workspace for a realistic differential-drive robot in Gazebo, with RViz 
 
 The manifest and lockfile define the workspace dependencies. Use the Pixi environment for ROS commands and builds; the instructions below do not require sourcing `/opt/ros/jazzy/setup.bash`.
 
+Pixi uses ROS domain `0` and local-only DDS. For communication between computers,
+change `CYCLONEDDS_URI` in `pixi.toml`.
+
 ## Install and build
 
 ```bash
@@ -43,13 +46,57 @@ matching `/aruco/ids` and `/aruco/poses` arrays, and `/aruco/debug_image`. Detec
 
 Configuration, namespace support, asset generation, and verification commands are in [the ArUco package README](src/edgeai_aruco/README.md).  The RGB-D topics retain Gazebo's original sensor frame so `/camera/points` stays aligned with the robot; ArUco observations use `camera_optical_frame`.
 
+## Rescue challenge arena
+
+Starts Gazebo, RViz and ArUco. Run from the workspace root:
+
+```bash
+eval "$(pixi shell-hook --shell bash)"
+source install/setup.bash
+ros2 launch edgeai_robot_description rescue_arena.launch.py robot_count:=2
+```
+
+For only robot1:
+
+```bash
+ros2 launch edgeai_robot_description rescue_arena.launch.py robot_count:=1
+```
+
+`robot_count` defaults to `2`; RViz follows the selection. Topics use `/robot1/...`
+and `/robot2/...`; RViz's fixed frame is `world`.
+Optional flags: `enable_aruco:=false`, `enable_rviz:=false`.
+For headless use, add `enable_rviz:=false gz_args:="-r -s --headless-rendering"`.
+
+Teleoperate in another activated terminal (replace `robot1` with `robot2` as needed):
+
+```bash
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args \
+  -r cmd_vel:=/robot1/cmd_vel -p speed:=0.1 -p turn:=0.5
+```
+
+If topics are missing: `ros2 topic list --no-daemon --spin-time 2`.
+
+Markers: `DICT_4X4_50`, S1 ID **1**, C1 ID **2**, size **0.20 m**.
+Edit [rescue_targets.yaml](src/edgeai_robot_description/config/rescue_targets.yaml),
+then regenerate, rebuild and restart:
+
+```bash
+ros2 run edgeai_robot_description generate_rescue_targets.py \
+  --config src/edgeai_robot_description/config/rescue_targets.yaml \
+  --models-dir src/edgeai_robot_description/models
+pixi run colcon build --symlink-install --packages-select edgeai_robot_description
+```
+
+[Arena reference](docs/arena_layout_reference.png) · [Gazebo view](docs/rescue_arena_top_down.png).
+C1 currently has one 0.70 m zone; the official two-zone positions remain undefined.
+
 ## ROS commands in another terminal
 
 In each additional terminal, enter the cloned repository and activate its environment:
 
 ```bash
 cd /path/to/edgeai_robot_ws
-pixi shell
+eval "$(pixi shell-hook --shell bash)"
 source install/setup.bash
 ```
 
