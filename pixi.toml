@@ -32,6 +32,21 @@ ros-jazzy-ros2lifecycle = ">=0.32.7,<0.33"
 ros-jazzy-nav2-amcl = ">=1.3.10,<2"
 ros-jazzy-nav2-lifecycle-manager = ">=1.3.10,<2"
 
+# ArUco perception (OpenCV's conda build includes the ArUco module).
+ros-jazzy-rclpy = ">=7.1,<8"
+ros-jazzy-rcl-interfaces = "*"
+ros-jazzy-sensor-msgs = "*"
+ros-jazzy-geometry-msgs = "*"
+ros-jazzy-std-msgs = "*"
+ros-jazzy-vision-msgs = ">=4.1,<5"
+ros-jazzy-cv-bridge = ">=4.1,<5"
+py-opencv = ">=4.10,<5"
+numpy = ">=1.26,<3"
+# Jazzy launch_testing still uses pytest's pre-9 hook signatures.
+pytest = ">=8,<9"
+# colcon's symlink install uses the legacy setuptools develop command.
+setuptools = ">=68,<80"
+
 [activation.env]
 RMW_IMPLEMENTATION = "rmw_cyclonedds_cpp"
 ROS_AUTOMATIC_DISCOVERY_RANGE = "SUBNET"

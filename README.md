@@ -36,6 +36,13 @@ The launch file loads `edgeai_robot_real.urdf.xacro`, starts the world in `world
 
 The portable realistic startup has been tested successfully. AMCL localization remains a local experiment; its launch and parameter files are not included in this repository. Installed AMCL dependencies do **not** mean that localization or autonomous navigation is complete.
 
+## Optional ArUco perception
+
+After rebuilding, run `./start_sim.sh enable_aruco:=true` to detect targets using the existing RGB-D camera. Also, the world includes a camera-visible placeholder `DICT_4X4_50` marker, ID `1`, with a 0.20 m black-square side on `obstacle_3`. Moreover, the detector publishes timestamped ID–pose observations on `/aruco/detections`,
+matching `/aruco/ids` and `/aruco/poses` arrays, and `/aruco/debug_image`. Detection is disabled by default. 
+
+Configuration, namespace support, asset generation, and verification commands are in [the ArUco package README](src/edgeai_aruco/README.md).  The RGB-D topics retain Gazebo's original sensor frame so `/camera/points` stays aligned with the robot; ArUco observations use `camera_optical_frame`.
+
 ## ROS commands in another terminal
 
 In each additional terminal, enter the cloned repository and activate its environment:
@@ -129,10 +136,12 @@ The current `/odom` source is the Gazebo DiffDrive plugin. Treat this odometry a
 ```text
 pixi.toml / pixi.lock                 Pixi environment and dependency lock
 start_sim.sh                         Simulation + RViz entry point
+src/edgeai_aruco/                    Optional camera-based ArUco perception and tests
 src/edgeai_robot_description/
   launch/simulation_real.launch.py   Realistic simulation and bridges
   urdf/edgeai_robot_real.urdf.xacro   Current robot model
   worlds/empty.sdf                   Simulation world
+  models/edgeai_aruco_marker/         Reusable visual-only ArUco panel
   rviz/realistic_robot.rviz           RViz configuration
   config/slam_toolbox.yaml           Mapping parameters
   maps/                             Packaged map resources
