@@ -652,8 +652,10 @@
 
     <topic>camera</topic>
 
-    <optical_frame_id>camera_optical_frame</optical_frame_id>
-
+    <!-- Keep Gazebo's native sensor frame. In gz-sensors 8.2 the point-cloud
+         XYZ coordinates remain X-forward even when optical_frame_id is set,
+         so that setting would mislabel and rotate the cloud in RViz.
+         The ArUco detector explicitly publishes its poses in the optical TF. -->
     <camera>
 
       <horizontal_fov>1.047</horizontal_fov>

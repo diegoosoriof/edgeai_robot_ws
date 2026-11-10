@@ -12,6 +12,7 @@ Panels:
         - /PointCloud21
         - /Image1
         - /Image2
+        - /ArUco Debug Image1
         - /Map1
       Splitter Ratio: 0.5
     Tree Height: 358
@@ -233,6 +234,20 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /camera/depth_image
       Value: true
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: ArUco Debug Image
+      Normalize Range: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /aruco/debug_image
+      Value: true
     - Alpha: 0.699999988079071
       Binary representation: false
       Binary threshold: 100
@@ -323,6 +338,8 @@ Visualization Manager:
       Yaw: 3.138573169708252
     Saved: ~
 Window Geometry:
+  ArUco Debug Image:
+    collapsed: false
   Displays:
     collapsed: false
   Height: 1043
