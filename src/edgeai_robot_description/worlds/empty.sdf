@@ -256,6 +256,15 @@
     -->
     <pose>0.8 -1.2 0.25 0 0 0.523599</pose>
 
+    <!-- Visual-only 0.20 m ArUco panel on the local -X face. The panel is
+         1 mm outside the original box, with +Z pointing out of that face.
+         Its white quiet zone is 0.267 m wide and fits the 0.30 m face. -->
+    <include>
+      <uri>model://edgeai_aruco_marker</uri>
+      <name>aruco_target_1</name>
+      <pose>-0.401 0 0 1.570796326795 0 -1.570796326795</pose>
+    </include>
+
     <link name="link">
 
       <collision name="collision">

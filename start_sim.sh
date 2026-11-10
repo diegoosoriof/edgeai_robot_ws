@@ -34,7 +34,7 @@ trap 'exit 143' TERM
 
 echo "Starting EdgeAI realistic robot simulation..."
 
-ros2 launch edgeai_robot_description simulation_real.launch.py &
+ros2 launch edgeai_robot_description simulation_real.launch.py "$@" &
 SIM_PID=$!
 CHILD_PIDS+=("$SIM_PID")
 
