@@ -156,12 +156,12 @@ def generate_launch_description():
         bridge,
         camera_sensor_tf,
         slam,
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(aruco_share, 'launch', 'detection.launch.py')),
-            condition=IfCondition(LaunchConfiguration('enable_aruco')),
-            launch_arguments={
-                'params_file': LaunchConfiguration('aruco_params_file'),
-                'use_sim_time': 'true',
-            }.items(),
-        ),
+        # IncludeLaunchDescription(
+        #     PythonLaunchDescriptionSource(os.path.join(aruco_share, 'launch', 'detection.launch.py')),
+        #     condition=IfCondition(LaunchConfiguration('enable_aruco')),
+        #     launch_arguments={
+        #         'params_file': LaunchConfiguration('aruco_params_file'),
+        #         'use_sim_time': 'true',
+        #     }.items(),
+        # ),
     ])
