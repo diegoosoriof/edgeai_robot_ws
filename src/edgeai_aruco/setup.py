@@ -21,6 +21,7 @@ setup(
     extras_require={'test': ['pytest']},
     entry_points={'console_scripts': [
         'aruco_detector = edgeai_aruco.node:main',
+        'aruco_registry = edgeai_aruco.registry:main',
         'generate_marker = edgeai_aruco.marker_model:main',
     ]},
 )

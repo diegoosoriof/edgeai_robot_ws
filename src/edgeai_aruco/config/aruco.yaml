@@ -23,3 +23,8 @@
     max_reprojection_error: 3.0  # RMS corner error, pixels.
     publish_tf: false
     tf_child_prefix: aruco_marker_
+    # Session registry: fixed-frame poses retained while markers are out of view.
+    known_markers_topic: aruco/known_markers
+    visualization_topic: aruco/known_markers_visualization
+    registry_frame: odom  # Use map when SLAM/localization provides its TF.
+    transform_timeout: 0.5  # Seconds to retry observations waiting for timestamped TF.

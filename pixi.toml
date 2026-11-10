@@ -39,13 +39,16 @@ ros-jazzy-sensor-msgs = "*"
 ros-jazzy-geometry-msgs = "*"
 ros-jazzy-std-msgs = "*"
 ros-jazzy-vision-msgs = ">=4.1,<5"
+ros-jazzy-visualization-msgs = "*"
 ros-jazzy-cv-bridge = ">=4.1,<5"
+ros-jazzy-tf2-geometry-msgs = ">=0.36,<0.37"
 py-opencv = ">=4.10,<5"
 numpy = ">=1.26,<3"
 # Jazzy launch_testing still uses pytest's pre-9 hook signatures.
 pytest = ">=8,<9"
 # colcon's symlink install uses the legacy setuptools develop command.
 setuptools = ">=68,<80"
+ros-jazzy-teleop-twist-keyboard = ">=2.4.1,<3"
 
 [activation.env]
 RMW_IMPLEMENTATION = "rmw_cyclonedds_cpp"
