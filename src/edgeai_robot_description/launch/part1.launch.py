@@ -29,7 +29,7 @@ def generate_launch_description():
                 PythonLaunchDescriptionSource(str(share / 'launch/rescue_arena.launch.py')),
                 launch_arguments={
                     'robot_count': '1', 'enable_rviz': 'false', 'enable_aruco': 'true',
-                    'enable_registry': 'false', 'enable_world_anchor': 'false',
+                    'enable_registry': 'true', 'enable_world_anchor': 'false',
                     'shutdown_on_gazebo_exit': 'false',
                     'gz_args': LaunchConfiguration('gz_args'),
                 }.items(),

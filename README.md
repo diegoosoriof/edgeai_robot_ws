@@ -106,6 +106,15 @@ type, image timestamp, and visual position in
 Part 1 omits the arena visualization's `world` to `robot1/odom` anchor so
 SLAM alone owns the map-to-odometry TF link.
 
+Detected targets also appear in RViz's **Robot 1 Saved Markers** display as
+green panels and ID labels, retained when they leave the camera view. The
+registry publishes `/robot1/aruco/known_markers_visualization` and stores poses
+in `robot1/odom`; RViz transforms them into its `map` fixed frame once SLAM is
+active. If adding the display manually, use **MarkerArray**, that topic,
+**Reliable**, and **Transient Local**. Enable **Robot 1 ArUco Debug** to see
+the annotated camera images as well. Restarting the launch clears the registry;
+markers appear again when observed during the new run.
+
 The printed marker size used by the detector and stand models is 0.16 m,
 excluding the white margin. Both stand centers remain at S1 (1.0, 4.1) and
 C1 (4.1, 1.0), with marker centers 0.35 m above the floor. The marker's local

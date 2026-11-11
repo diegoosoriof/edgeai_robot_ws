@@ -60,7 +60,8 @@ def registry_visualization(snapshot):
         label.pose.position.z += panel.scale.y / 2 + 0.1
         label.pose.orientation.w = 1.0
         label.scale.z = 0.08
-        label.color.r = label.color.g = label.color.b = label.color.a = 1.0
+        label.color.r = label.color.g = label.color.b = 0.0
+        label.color.a = 1.0
         # Default zero lifetime keeps both objects visible while unobserved.
         markers.extend((panel, label))
     return MarkerArray(markers=markers)
