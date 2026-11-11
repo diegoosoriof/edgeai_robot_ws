@@ -2,6 +2,9 @@
 
 from pathlib import Path
 from uuid import uuid4
+import json
+
+import yaml
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -10,6 +13,7 @@ from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node, PushRosNamespace
+from launch_ros.parameter_descriptions import ParameterValue
 
 
 def generate_launch_description():
@@ -17,6 +21,7 @@ def generate_launch_description():
     slam_share = Path(get_package_share_directory('slam_toolbox'))
     nav_share = Path(get_package_share_directory('nav2_bringup'))
     explorer_share = Path(get_package_share_directory('mrtsp_exploration_ros2'))
+    targets = yaml.safe_load((share / 'config/rescue_targets.yaml').read_text())['targets']
     return LaunchDescription([
         DeclareLaunchArgument('enable_rviz', default_value='true'),
         DeclareLaunchArgument('gz_args', default_value='-r'),
@@ -30,6 +35,7 @@ def generate_launch_description():
                 launch_arguments={
                     'robot_count': '1', 'enable_rviz': 'false', 'enable_aruco': 'true',
                     'enable_registry': 'true', 'enable_world_anchor': 'false',
+                    'registry_run_enabled_topic': '/part1/run_enabled',
                     'shutdown_on_gazebo_exit': 'false',
                     'gz_args': LaunchConfiguration('gz_args'),
                 }.items(),
@@ -71,6 +77,9 @@ def generate_launch_description():
         Node(package='edgeai_aruco', executable='part1_recorder',
              name='part1_recorder', output='screen',
              parameters=[{'use_sim_time': True,
+                          'targets_json': ParameterValue(json.dumps({
+                              str(target['id']): [name, target['type']]
+                              for name, target in targets.items()}), value_type=str),
                           'output_root': LaunchConfiguration('output_root')}]),
         Node(package='rviz2', executable='rviz2', name='part1_rviz',
              output='screen', condition=IfCondition(LaunchConfiguration('enable_rviz')),

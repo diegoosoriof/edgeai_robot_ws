@@ -1,8 +1,17 @@
-# Competition Part 1 stand dimensions. Regenerate the stand models after editing.
+# Shared midterm targets for perception, arena checks and rescue verification.
+# Regenerate stand models after changing the dictionary, IDs or marker size.
 dictionary: DICT_4X4_50
 marker_size: 0.16  # Printed black square side, metres; excludes the white quiet zone.
 targets:
   S1:
     id: 1
+    type: single_rescue
+    center: [1.0, 4.1]
+    radius: 0.5
+    hold_seconds: 10.0
   C1:
     id: 2
+    type: cooperative_rescue
+    center: [4.1, 1.0]
+    radius: 0.7
+    hold_seconds: 10.0

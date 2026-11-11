@@ -11,7 +11,7 @@ from rclpy.clock import Clock, ClockType
 from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, QoSProfile
 from rclpy.time import Time
-from std_msgs.msg import Header
+from std_msgs.msg import Bool, Header
 from tf2_geometry_msgs import do_transform_pose, do_transform_pose_with_covariance_stamped
 from tf2_ros import Buffer, TransformException, TransformListener
 from vision_msgs.msg import Detection3DArray
@@ -98,6 +98,7 @@ class MarkerRegistryNode(Node):
             'visualization_topic': 'aruco/known_markers_visualization',
             'registry_frame': 'odom',
             'transform_timeout': 0.5,
+            'run_enabled_topic': '',
         }
         for name, value in defaults.items():
             self.declare_parameter(name, value, ParameterDescriptor(read_only=True))
@@ -106,6 +107,8 @@ class MarkerRegistryNode(Node):
             raise ValueError('registry_frame must name a fixed TF frame without a leading slash')
         self.transform_timeout = positive_float(settings['transform_timeout'], 'transform_timeout')
         self.registry = MarkerRegistry(settings['registry_frame'])
+        self.run_enabled = not settings['run_enabled_topic']
+        self.run_started_ns = 0
         self.tf_buffer = Buffer(node=self)
         self.tf_listener = TransformListener(self.tf_buffer, self)
         # Bound retries when image observations arrive just before their TF.
@@ -120,6 +123,11 @@ class MarkerRegistryNode(Node):
         )
         self.subscription = self.create_subscription(
             Detection3DArray, settings['detections_topic'], self.on_detections, 1)
+        if settings['run_enabled_topic']:
+            self.run_subscription = self.create_subscription(
+                Bool, settings['run_enabled_topic'], self.on_run_enabled,
+                QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL),
+            )
         self.last_clock = self.get_clock().now().nanoseconds
         self.steady_clock = Clock(clock_type=ClockType.STEADY_TIME)
         self.retry_timer = self.create_timer(0.05, self.retry_pending, clock=self.steady_clock)
@@ -129,6 +137,15 @@ class MarkerRegistryNode(Node):
 
     def warn(self, message):
         self.get_logger().warning(message, throttle_duration_sec=5.0)
+
+    def on_run_enabled(self, message):
+        if message.data == self.run_enabled:
+            return
+        self.run_enabled = message.data
+        self.run_started_ns = self.get_clock().now().nanoseconds
+        self.registry.markers.clear()
+        self.pending.clear()
+        self.publish_snapshot()
 
     def check_clock(self):
         now = self.get_clock().now().nanoseconds
@@ -140,6 +157,8 @@ class MarkerRegistryNode(Node):
         self.last_clock = now
 
     def on_detections(self, message):
+        if not self.run_enabled or stamp_ns(message.header.stamp) < self.run_started_ns:
+            return
         self.check_clock()
         if message.detections:
             if not message.header.frame_id or stamp_ns(message.header.stamp) <= 0:

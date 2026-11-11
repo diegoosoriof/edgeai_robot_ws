@@ -13,8 +13,8 @@ from rclpy.time import Time
 from sensor_msgs.msg import LaserScan
 from std_srvs.srv import Empty
 from tf2_ros import Buffer, TransformException, TransformListener
-import yaml
 
+from .configuration import load_mission_config
 from .geometry import Pose2D, shift_pose
 from .verification import LocalizedPose
 
@@ -47,7 +47,7 @@ def load_config(node):
     from ament_index_python.packages import get_package_share_directory
     default = str(Path(get_package_share_directory('edgeai_rescue'))/'config/mission.yaml')
     node.declare_parameter('config_file', default)
-    return yaml.safe_load(Path(node.get_parameter('config_file').value).read_text())
+    return load_mission_config(node.get_parameter('config_file').value)
 
 
 def steady_timer(node, period, callback):

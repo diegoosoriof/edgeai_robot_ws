@@ -5,19 +5,7 @@ set -e
 WS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$WS_DIR"
 
-# Activate Pixi environment
-PIXI_HOOK="$(pixi shell-hook)"
-eval "$PIXI_HOOK"
-unset PIXI_HOOK
-
-# Source ROS 2 workspace
-if [[ ! -f install/setup.bash ]]; then
-    echo "Workspace has not been built."
-    echo "Run: pixi run colcon build --symlink-install"
-    exit 1
-fi
-
-source install/setup.bash
+source "$WS_DIR/setup_workspace.bash"
 
 # Register cleanup before starting any background processes.
 CHILD_PIDS=()

@@ -3,6 +3,13 @@
 ROS 2 / OpenCV ArUco detection using `/camera/image` and `/camera/camera_info`.
 The Gazebo test marker on `obstacle_3` uses `DICT_4X4_50`, ID **1**, and a **0.20 m** black square.
 
+That marker belongs to the `start_sim.sh` sensor sandbox. The midterm uses the
+shared rescue arena with **0.16 m** S1/ID 1 and C1/ID 2 stands, configured in
+`edgeai_robot_description/config/rescue_targets.yaml`. Use
+[`start_part1.sh` and the workspace guide](../../README.md#part-1-explore-map-and-detect)
+for autonomous mapping/detection; its topics have the `/robot1` prefix. Part 2
+uses known targets and does not require another camera detection pass.
+
 ## Build and launch
 
 Run from the workspace root:
@@ -56,6 +63,9 @@ The registry retains each dictionary/ID while invisible and updates its fixed-fr
 Its array header gives the snapshot time; each detection's header stamp is its **last-seen image time**.
 Storage lasts for the running session; restarting the registry or resetting ROS time clears it.
 IDs must be unique per physical marker. No spatial clustering or pose smoothing is applied.
+In Part 1 the registry also waits for `/part1/run_enabled`, clears when the run
+starts and ignores observations captured before Start. Panels are green and ID
+labels are black for contrast against the map.
 
 ## Configuration
 
@@ -93,9 +103,9 @@ env -u PYTHONPATH pixi run colcon test --packages-select edgeai_aruco --event-ha
 pixi run colcon test-result --verbose
 ```
 
-For a complete Gazebo camera, marker-pose, and point-cloud check (EGL rendering required),
-with Pixi active and the workspace sourced:
+For the shared arena's Gazebo camera, marker-pose and sensor smoke test (EGL
+rendering required), with the workspace environment sourced:
 
 ```bash
-python src/edgeai_aruco/test/verify_simulation.py --output-dir /tmp/edgeai_aruco_validation
+python src/edgeai_robot_description/test/verify_rescue_arena.py --output-dir /tmp/edgeai_aruco_validation
 ```

@@ -7,7 +7,7 @@ resources = [
     ('share/ament_index/resource_index/packages', ['resource/edgeai_rescue']),
     ('share/edgeai_rescue', ['package.xml', 'README.md']),
 ]
-for directory in ('config', 'launch', 'rviz', 'maps', 'worlds', 'models'):
+for directory in ('config', 'launch', 'rviz', 'maps'):
     for path in Path(directory).rglob('*'):
         if path.is_file() and '__pycache__' not in path.parts:
             resources.append((f'share/edgeai_rescue/{path.parent}', [str(path)]))

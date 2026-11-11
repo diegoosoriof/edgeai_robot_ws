@@ -18,7 +18,7 @@ import time
 from ament_index_python.packages import get_package_share_directory
 import cv2
 from cv_bridge import CvBridge
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import PointStamped, Twist
 from gz.msgs10.entity_factory_pb2 import EntityFactory
 from gz.msgs10.image_pb2 import Image as GzImage
 from gz.msgs10.pose_pb2 import Pose
@@ -28,11 +28,13 @@ from google.protobuf.text_format import MessageToString
 from nav_msgs.msg import Odometry
 import numpy as np
 import rclpy
+import yaml
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import CameraInfo, Image, JointState, LaserScan, PointCloud2
 from tf2_ros import Buffer, TransformListener
+from tf2_geometry_msgs import do_transform_point
 from vision_msgs.msg import Detection3DArray
 
 
@@ -158,10 +160,12 @@ def main():
                      'physics settling')
             spawn_positions = {name: position(name).tolist() for name in detections}
             assert set(poses) == set(detections), f'Unexpected robots spawned: {set(poses) - set(detections)}'
-            np.testing.assert_allclose(spawn_positions['robot1'], [.45, .45], atol=.02)
-            if args.robot_count == 2:
-                np.testing.assert_allclose(spawn_positions['robot2'], [1, .45], atol=.02)
-            else:
+            starts = yaml.safe_load((Path(get_package_share_directory('edgeai_robot_description'))
+                                     / 'config/rescue_robots.yaml').read_text())
+            for name in detections:
+                np.testing.assert_allclose(spawn_positions[name],
+                                           [starts[name]['x'], starts[name]['y']], atol=.02)
+            if args.robot_count == 1:
                 assert not any(namespace == '/robot2' for _, namespace in node.get_node_names_and_namespaces())
                 assert not buffer.can_transform('world', 'robot2/odom', rclpy.time.Time())
             for name in detections:
@@ -205,11 +209,12 @@ def main():
             print(f'{args.robot_count} robot(s) have working sensors, TF and physical control.', flush=True)
             # Move only test-owned robots to collision-free marker approach poses.
             approaches = [
-                ('robot1', 1.65, 3.50, math.atan2(.6, -.65), 'S1'),
+                # Look past W1b from the open side, far enough for the low
+                # camera to include the full east-facing printed pattern.
+                ('robot1', 2.60, 3.50, math.atan2(.6, -1.6), 'S1'),
                 ('robot2' if args.robot_count == 2 else 'robot1', 4.1, 2.1, -math.pi / 2, 'C1'),
             ]
             config = Path(get_package_share_directory('edgeai_robot_description')) / 'config/rescue_targets.yaml'
-            import yaml
             targets = yaml.safe_load(config.read_text())
             verified = {}
             for name, x, y, yaw, target in approaches:
@@ -229,9 +234,17 @@ def main():
                                    for item in message.detections if item.id == expected_id)
                 assert observation.header.frame_id == f'{name}/camera_optical_frame'
                 pose = observation.results[0].pose.pose
-                expected_distance = math.hypot(.65, .6) - .175 if target == 'S1' else .925
+                center = targets['targets'][target]['center']
+                point = PointStamped()
+                point.point.x = math.hypot(center[0] - x, center[1] - y)
+                point.point.z = .35
+                # Derive the expected relative pose from the actual camera
+                # mount instead of assuming an old camera height/offset.
+                mount = buffer.lookup_transform(f'{name}/camera_optical_frame',
+                                                f'{name}/base_footprint', rclpy.time.Time())
+                expected = do_transform_point(point, mount).point
                 np.testing.assert_allclose([pose.position.x, pose.position.y, pose.position.z],
-                                           [0, -.1, expected_distance], atol=.07)
+                                           [expected.x, expected.y, expected.z], atol=.07)
                 cv2.imwrite(str(output / f'{name}_{target}_camera.png'),
                             bridge.imgmsg_to_cv2(latest[(name, 'camera/image')], desired_encoding='bgr8'))
                 verified[target] = {'robot': name, 'marker': expected_id,

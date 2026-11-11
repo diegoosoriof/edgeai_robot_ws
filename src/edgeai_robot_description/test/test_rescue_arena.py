@@ -53,14 +53,17 @@ def test_arena_dimensions_and_connected_walls():
 
 def test_targets_and_noncolliding_overlays():
     arena = world()
+    targets = yaml.safe_load((PACKAGE / 'config/rescue_targets.yaml').read_text())['targets']
     includes = {item.findtext('name'): item for item in arena.findall('include')}
     for name, center in (('S1', [1, 4.1, 0]), ('C1', [4.1, 1, 0])):
         np.testing.assert_allclose(list(map(float, includes[name].findtext('pose').split()))[:3], center)
+        np.testing.assert_allclose(targets[name]['center'], center[:2])
         assert includes[name].findtext('uri') == f'model://rescue_target_{name}'
     for name, radius in (('S1', .5), ('C1', .7)):
         overlay = arena.find(f"model[@name='{name}_zone']")
         assert overlay.findall('.//collision') == []
         assert float(overlay.findtext('link/visual/geometry/cylinder/radius')) == radius
+        assert targets[name]['radius'] == radius
     start = arena.find("model[@name='start_area']")
     assert start.findall('.//collision') == []
     np.testing.assert_allclose(list(map(float, start.findtext('pose').split()))[:2], [.7, .5])
@@ -150,12 +153,12 @@ def test_stands_reproduce_valid_distinct_markers(tmp_path):
     assert len(set(ids)) == 2
 
 
-def test_competition_marker_faces_and_dimensions():
+def test_marker_faces_and_dimensions():
     includes = {item.findtext('name'): item for item in world().findall('include')}
     config = yaml.safe_load((PACKAGE / 'config/rescue_targets.yaml').read_text())
     assert config['dictionary'] == 'DICT_4X4_50'
     assert config['marker_size'] == .16
-    for name, expected_normal in (('S1', [0, -1, 0]), ('C1', [0, 1, 0])):
+    for name, expected_normal in (('S1', [1, 0, 0]), ('C1', [0, 1, 0])):
         model = ET.parse(PACKAGE / f'models/rescue_target_{name}/model.sdf').getroot().find('model')
         marker = model.find("link[@name='marker']")
         local_pose = np.fromstring(marker.findtext('pose'), sep=' ')

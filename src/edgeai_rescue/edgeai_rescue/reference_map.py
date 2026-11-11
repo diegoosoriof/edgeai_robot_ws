@@ -95,7 +95,7 @@ def generate(world_file, models_dir, output, resolution=.025):
 
 def main():
     from ament_index_python.packages import get_package_share_directory
-    share = Path(get_package_share_directory('edgeai_rescue'))
+    share = Path(get_package_share_directory('edgeai_robot_description'))
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--world', type=Path, default=share/'worlds/rescue_arena.sdf')
     parser.add_argument('--models-dir', type=Path, default=share/'models')

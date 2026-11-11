@@ -2,15 +2,8 @@
 set -euo pipefail
 WS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$WS_DIR"
-# Use the already installed Pixi environment. This also works when an older
-# pixi binary cannot read the repository's newer lockfile.
-export PATH="$WS_DIR/.pixi/envs/default/bin:$PATH"
-export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}"
-export CYCLONEDDS_URI="file://$WS_DIR/src/edgeai_robot_description/config/rescue_simulation_dds.xml"
-export ROS_LOG_DIR="$WS_DIR/log/part1" ROS_HOME="$WS_DIR/.ros"
-set +u
-source install/setup.bash
-set -u
+source "$WS_DIR/setup_workspace.bash"
+export ROS_LOG_DIR="$WS_DIR/log/part1"
 case "${1:-}" in
   start)
     echo 'Waiting for simulated robot odometry/TF...'
@@ -30,6 +23,25 @@ case "${1:-}" in
     fi
     ros2 run nav2_map_server map_saver_cli -f "$RUN_DIR/map" \
       --ros-args -p use_sim_time:=true -r map:=/map
+    python - "$RUN_DIR/map.yaml" <<'PY'
+from pathlib import Path
+import sys
+
+import cv2
+import yaml
+
+metadata_path = Path(sys.argv[1])
+image_path = Path(yaml.safe_load(metadata_path.read_text())['image'])
+if not image_path.is_absolute():
+    image_path = metadata_path.parent / image_path
+image = cv2.imread(str(image_path), cv2.IMREAD_UNCHANGED)
+if image is None:
+    raise SystemExit(f'Could not read saved map image: {image_path}')
+output = metadata_path.with_suffix('.png')
+if not cv2.imwrite(str(output), image):
+    raise SystemExit(f'Could not write map PNG: {output}')
+print(f'Map image saved: {output}')
+PY
     ;;
   status)
     ros2 lifecycle get /robot1/slam_toolbox

@@ -8,7 +8,7 @@ import uuid
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (AppendEnvironmentVariable, DeclareLaunchArgument, IncludeLaunchDescription,
-                            OpaqueFunction, RegisterEventHandler)
+                            OpaqueFunction, RegisterEventHandler, SetEnvironmentVariable)
 from launch.conditions import IfCondition
 from launch.event_handlers import OnShutdown
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -17,6 +17,7 @@ from launch_ros.actions import Node
 import yaml
 
 from edgeai_rescue.launch_support import resolve_map, robot_parameters
+from edgeai_rescue.configuration import load_mission_config
 from edgeai_rescue.geometry import shift_pose
 from edgeai_rescue.robot_model import describe_robot, drive_center_x
 
@@ -26,7 +27,7 @@ def launch_part2(context, share, description_share):
         return LaunchConfiguration(name).perform(context)
 
     config_path = Path(value('config_file')).expanduser().resolve()
-    config = yaml.safe_load(config_path.read_text())
+    config = load_mission_config(config_path, description_share)
     if set(config['robots']) != {'robot1', 'robot2'}:
         raise ValueError('Part 2 requires robot1 and robot2')
     temporary = tempfile.TemporaryDirectory(prefix='edgeai_part2_')
@@ -36,7 +37,7 @@ def launch_part2(context, share, description_share):
     evidence = Path(value('evidence_dir')).expanduser().resolve()/run_name
     evidence.mkdir(parents=True, exist_ok=True)
     (evidence/'map_metadata.yaml').write_text(Path(map_yaml).read_text())
-    (evidence/'mission_config.yaml').write_text(config_path.read_text())
+    (evidence/'mission_config.yaml').write_text(yaml.safe_dump(config, sort_keys=False))
     common = {'use_sim_time': True}
     template = yaml.safe_load((share/'config/nav2.yaml').read_text())
     descriptions = {}
@@ -47,10 +48,10 @@ def launch_part2(context, share, description_share):
     flat_footprint = [float(coordinate) for point in footprint for coordinate in point]
     actions = [
         RegisterEventHandler(OnShutdown(on_shutdown=[OpaqueFunction(function=lambda _: temporary.cleanup() or [])])),
-        AppendEnvironmentVariable('GZ_SIM_RESOURCE_PATH', str(share/'models')),
+        AppendEnvironmentVariable('GZ_SIM_RESOURCE_PATH', str(description_share/'models')),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(str(Path(get_package_share_directory('ros_gz_sim'))/'launch/gz_sim.launch.py')),
-            launch_arguments={'gz_args': value('gz_args')+' '+str(share/'worlds/rescue_arena.sdf'),
+            launch_arguments={'gz_args': value('gz_args')+' '+str(description_share/'worlds/rescue_arena.sdf'),
                               'on_exit_shutdown': 'true'}.items()),
         Node(package='ros_gz_bridge', executable='parameter_bridge', name='clock_bridge', output='screen',
              arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock']),
@@ -126,11 +127,14 @@ def generate_launch_description():
         DeclareLaunchArgument('map_yaml', default_value=str(share/'maps/rescue_reference.yaml')),
         DeclareLaunchArgument('map_image', default_value='', description='Optional override for the map image path'),
         DeclareLaunchArgument('config_file', default_value=str(share/'config/mission.yaml')),
-        DeclareLaunchArgument('evidence_dir', default_value='rescue_evidence'),
+        DeclareLaunchArgument('evidence_dir', default_value='runs/part2'),
         DeclareLaunchArgument('autostart_mission', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('elapsed_before_part2', default_value='0.0', description='Seconds already used by Part 1 and transition'),
         DeclareLaunchArgument('initial_scan_angle', default_value='0.0', description='Optional Nav2 collision-checked scan; maximum 0.5 rad'),
         DeclareLaunchArgument('enable_rviz', default_value='true'),
         DeclareLaunchArgument('gz_args', default_value='-r'),
+        DeclareLaunchArgument('gz_partition', default_value=f'edgeai_part2_{uuid.uuid4().hex}',
+                              description='Gazebo transport partition for this run'),
+        SetEnvironmentVariable('GZ_PARTITION', LaunchConfiguration('gz_partition')),
         OpaqueFunction(function=launch_part2, kwargs={'share': share, 'description_share': description_share}),
     ])

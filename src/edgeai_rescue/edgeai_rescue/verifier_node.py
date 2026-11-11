@@ -113,7 +113,7 @@ class VerifierNode(Node):
             label.ns, label.id, label.type = 'rescue_labels', index, Marker.TEXT_VIEW_FACING
             label.pose.position.x, label.pose.position.y, label.pose.position.z = x, y, .7
             label.pose.orientation.w = 1.
-            label.scale.z, label.color.r, label.color.g, label.color.b, label.color.a = .13, 1., 1., 1., 1.
+            label.scale.z, label.color.a = .13, 1.
             label.text = f"{name}: {'COMPLETE' if check['completed'] else f'{check["held_seconds"]:.1f}/10 s'}"
             array.markers.append(label)
         text = Marker()

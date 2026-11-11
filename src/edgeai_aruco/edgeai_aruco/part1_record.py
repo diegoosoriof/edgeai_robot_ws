@@ -27,6 +27,9 @@ class Part1Recorder(Node):
     def __init__(self):
         super().__init__('part1_recorder')
         self.declare_parameter('output_root', 'runs/part1')
+        self.declare_parameter('targets_json', json.dumps(TARGETS))
+        self.targets = {int(key): tuple(value) for key, value in
+                        json.loads(self.get_parameter('targets_json').value).items()}
         self.root = Path(self.get_parameter('output_root').value).expanduser().resolve()
         self.bridge = CvBridge()
         self.run_dir = None
@@ -39,6 +42,7 @@ class Part1Recorder(Node):
         self.count = 0
         latch = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
         self.enabled_pub = self.create_publisher(Bool, '/part1/run_enabled', latch)
+        self.enabled_pub.publish(Bool(data=False))
         self.summary_pub = self.create_publisher(String, '/part1/summary', latch)
         self.target_pub = self.create_publisher(String, '/part1/target', 10)
         self.create_service(Trigger, '/part1/start', self.start)
@@ -74,7 +78,7 @@ class Part1Recorder(Node):
         return response
 
     def detect(self, message):
-        if self.run_dir is None:
+        if self.run_dir is None or stamp_ns(message.header.stamp) < self.started_ns:
             return
         for detection in message.detections:
             if not detection.results or not message.header.frame_id:
@@ -83,9 +87,9 @@ class Part1Recorder(Node):
                 marker_id = int(detection.results[0].hypothesis.class_id)
             except ValueError:
                 continue
-            if marker_id not in TARGETS:
+            if marker_id not in self.targets:
                 continue
-            name, kind = TARGETS[marker_id]
+            name, kind = self.targets[marker_id]
             point = detection.results[0].pose.pose.position
             record = {
                 'marker_id': marker_id, 'target': name, 'target_type': kind,

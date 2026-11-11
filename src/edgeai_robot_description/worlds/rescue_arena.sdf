@@ -352,7 +352,7 @@
         </visual>
       </link>
     </model>
-    <!-- C1 shows one radius-0.7 m circle as specified; two cooperative zone locations remain undefined. -->
+    <!-- Both robots share C1's radius-0.7 m rescue circle. -->
     <!-- S1 faces east toward the opening around W1; C1 faces north. -->
     <include>
       <uri>model://rescue_target_S1</uri>

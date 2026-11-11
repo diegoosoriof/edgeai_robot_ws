@@ -2,12 +2,13 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
-import yaml
 
+from edgeai_rescue.configuration import load_mission_config
 from edgeai_rescue.fsm import Inputs, MissionFSM, State
 
 
-CONFIG = yaml.safe_load((Path(__file__).parents[1]/'config/mission.yaml').read_text())
+CONFIG = load_mission_config(Path(__file__).parents[1]/'config/mission.yaml',
+                             Path(__file__).parents[2]/'edgeai_robot_description')
 
 
 def ready(**kwargs):

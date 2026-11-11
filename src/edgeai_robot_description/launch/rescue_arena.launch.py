@@ -9,6 +9,7 @@ from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import AndSubstitution, LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 import xacro
 import yaml
 
@@ -27,6 +28,8 @@ def generate_launch_description():
         DeclareLaunchArgument('shutdown_on_gazebo_exit', default_value='true'),
         DeclareLaunchArgument('enable_aruco', default_value='true'),
         DeclareLaunchArgument('enable_registry', default_value='true'),
+        DeclareLaunchArgument('registry_run_enabled_topic', default_value='',
+                              description='Optional Bool topic gating remembered detections'),
         DeclareLaunchArgument('enable_rviz', default_value='true'),
         DeclareLaunchArgument('enable_world_anchor', default_value='true'),
         DeclareLaunchArgument('robot_count', default_value='2', choices=['1', '2'],
@@ -94,7 +97,9 @@ def generate_launch_description():
                  condition=IfCondition(AndSubstitution(
                      LaunchConfiguration('enable_aruco'), LaunchConfiguration('enable_registry'))),
                  parameters=[str(aruco / 'config/aruco.yaml'), settings,
-                             {'registry_frame': f'{name}/odom'}]),
+                             {'registry_frame': f'{name}/odom',
+                              'run_enabled_topic': ParameterValue(
+                                  LaunchConfiguration('registry_run_enabled_topic'), value_type=str)}]),
         ]))
     actions.append(IncludeLaunchDescription(
         PythonLaunchDescriptionSource(str(share / 'launch/rescue_visualization.launch.py')),
