@@ -37,8 +37,9 @@ Goals, thresholds, timers and spawn poses: `config/mission.yaml`.
 Nav2 tuning: `config/nav2.yaml`. Footprints come from URDF collisions, including caster
 clearance. Nav2 controls the wheel-axle `drive_frame`; goals and rescue distances use
 the original `base_footprint`. Their 8.75 cm offset is derived from the URDF.
-C1 slots are approached sequentially.
-After S1, Nav2 backs out 0.4 m with collision checks before turning toward C1.
+Robot2 heads to S1 while robot1 heads to the left C1 slot. Robot1 waits there for robot2.
+Robot2 stays still for the S1 hold. Once the verifier confirms the rescue, Nav2 backs it
+out 0.4 m with collision checks before planning its route to C1.
 Peer footprints enter both costmaps and Nav2 Collision Monitor; twist-mux locks stop
 robots on invalid localization, while holding, or when the mission is idle/failed.
 

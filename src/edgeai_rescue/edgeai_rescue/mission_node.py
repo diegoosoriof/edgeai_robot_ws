@@ -85,7 +85,7 @@ class MissionNode(Node):
         localized = fresh and all(verification.get('localized', {}).get(robot, False) for robot in self.config['robots'])
         inputs = Inputs(
             ready=self.map_grid is not None and self.navigation.ready(), localized=localized,
-            selection=self.navigation.selection_status(self.fsm.phase),
+            selection=self.navigation.selection_status(),
             navigation={robot: job.status for robot, job in self.navigation.jobs.items()},
             verification=verification if fresh and verification.get('run_id') == self.run_id else {},
             recovered=self.navigation.recovered(),
@@ -96,11 +96,13 @@ class MissionNode(Node):
                 self.evidence.write({'time': now, 'run_id': self.run_id, 'event': kind,
                                      'robot_or_target': first, 'target': second})
             if kind == 'select':
-                self.navigation.select(first, self.map_grid)
+                self.navigation.select(self.fsm.selection_goals, self.map_grid)
                 goals = PoseArray()
                 goals.header.frame_id, goals.header.stamp = self.config['map_frame'], self.get_clock().now().to_msg()
-                goals.poses = [pose_message(values, goals.header.stamp).pose
-                               for values in self.config['targets'][first]['goals'].values()]
+                goals.poses = [
+                    pose_message(self.config['targets'][target]['goals'][robot], goals.header.stamp).pose
+                    for robot, target in self.fsm.assigned_goals.items()
+                ]
                 self.goals_pub.publish(goals)
             elif kind == 'navigate':
                 self.navigation.navigate(first, second)

@@ -17,29 +17,39 @@ def ready(**kwargs):
 def at_s1_verification():
     fsm = MissionFSM(deepcopy(CONFIG))
     fsm.step(10, ready())
-    assert fsm.state == State.SELECT_S1_GOAL
+    assert fsm.state == State.SELECT_INITIAL_GOALS
     fsm.step(10.1, ready(selection=True))
-    fsm.step(11, ready(navigation={'robot1': 'SUCCEEDED'}))
+    fsm.step(11, ready(navigation={'robot2': 'SUCCEEDED'}))
     assert fsm.state == State.VERIFY_S1_POSITION
     return fsm
 
 
-def test_happy_path_is_staged_and_requires_verifier():
-    fsm = at_s1_verification()
-    fsm.step(11.1, ready(verification={'targets': {'S1': {'eligible': True, 'completed': False}}}))
-    assert fsm.state == State.HOLD_S1
+def test_both_robots_depart_together_and_rescues_require_verification():
+    fsm = MissionFSM(deepcopy(CONFIG))
+    fsm.step(10, ready())
+    assert fsm.selection_goals == {'robot2': 'S1', 'robot1': 'C1'}
+    effects = fsm.step(10.1, ready(selection=True))
+    assert ('navigate', 'robot2', 'S1') in effects and ('navigate', 'robot1', 'C1') in effects
+    assert fsm.moving_robots == {'robot2', 'robot1'}
+    fsm.step(11, ready(navigation={'robot2': 'SUCCEEDED', 'robot1': 'ACTIVE'}))
+    assert fsm.state == State.VERIFY_S1_POSITION and fsm.moving_robots == {'robot1'}
+    effects = fsm.step(11.1, ready(verification={'targets': {'S1': {'eligible': True, 'completed': False}}}))
+    assert all(kind == 'state' for kind, _, _ in effects)
+    assert fsm.state == State.HOLD_S1 and fsm.moving_robots == {'robot1'}
+    fsm.step(15, ready(navigation={'robot1': 'SUCCEEDED', 'robot2': 'SUCCEEDED'},
+                       verification={'targets': {'S1': {'eligible': True}}}))
+    assert fsm.state == State.HOLD_S1 and not fsm.moving_robots
     fsm.step(21.1, ready(verification={'targets': {'S1': {'eligible': True, 'completed': True}}}))
     assert fsm.state == State.S1_COMPLETED
-    fsm.step(21.2, ready())
-    assert fsm.s1_completed and fsm.state == State.SELECT_C1_GOALS
-    effects = fsm.step(21.3, ready(selection=True))
-    assert ('depart_s1', 'robot1', '') in effects
-    assert fsm.moving_robots == {'robot1'}
-    effects = fsm.step(22, ready(navigation={'robot1': 'SUCCEEDED'}))
-    assert ('navigate', 'robot1', 'C1') in effects and fsm.departed_s1
-    effects = fsm.step(25, ready(navigation={'robot1': 'SUCCEEDED'}))
-    assert ('navigate', 'robot2', 'C1') in effects and fsm.moving_robots == {'robot2'}
-    fsm.step(28, ready(navigation={'robot1': 'SUCCEEDED', 'robot2': 'SUCCEEDED'}))
+    effects = fsm.step(21.2, ready())
+    assert fsm.s1_completed and fsm.state == State.BACK_UP_FROM_S1
+    assert ('depart_s1', 'robot2', '') in effects and ('select', 'C1', '') not in effects
+    effects = fsm.step(22, ready(navigation={'robot2': 'SUCCEEDED'}))
+    assert ('select', 'C1', '') in effects and fsm.selection_goals == {'robot2': 'C1'}
+    effects = fsm.step(22.1, ready(selection=True))
+    assert ('navigate', 'robot2', 'C1') in effects and ('navigate', 'robot1', 'C1') not in effects
+    fsm.step(25, ready(navigation={'robot2': 'SUCCEEDED'}))
+    fsm.step(28, ready())
     assert fsm.state == State.VERIFY_C1_POSITIONS and not fsm.moving_robots
     fsm.step(28.1, ready(verification={'targets': {'C1': {'eligible': True, 'completed': False}}}))
     assert fsm.state == State.HOLD_C1
@@ -52,7 +62,7 @@ def test_happy_path_is_staged_and_requires_verifier():
 
 def test_nav2_success_alone_is_never_rescue_success():
     fsm = at_s1_verification()
-    fsm.step(11.1, ready(navigation={'robot1': 'SUCCEEDED'}))
+    fsm.step(11.1, ready(navigation={'robot2': 'SUCCEEDED'}))
     assert fsm.state == State.VERIFY_S1_POSITION
     assert not fsm.s1_completed
 
@@ -82,9 +92,9 @@ def test_recovery_is_bounded_and_cancels_navigation():
         assert ('cancel_all', '', '') in effects and not fsm.moving_robots
         fsm.step(now+2.1, ready(recovered=True))
         fsm.step(now+2.2, ready())
-        assert fsm.state == State.SELECT_S1_GOAL
+        assert fsm.state == State.SELECT_INITIAL_GOALS
         fsm.step(now+2.3, ready(selection=True))
-        fsm.step(now+2.4, ready(navigation={'robot1': 'SUCCEEDED'}))
+        fsm.step(now+2.4, ready(navigation={'robot2': 'SUCCEEDED'}))
     fsm.step(50, ready())
     assert fsm.state == State.FAILED
 
@@ -94,12 +104,12 @@ def test_navigation_failure_and_timeout_have_bounded_recovery():
         fsm = MissionFSM(deepcopy(CONFIG))
         fsm.step(10, ready())
         fsm.step(10.1, ready(selection=True))
-        fsm.step(11, ready(navigation={'robot1': failed_status}))
+        fsm.step(11, ready(navigation={'robot2': failed_status}))
         assert fsm.state == State.RECOVERING
     fsm = MissionFSM(deepcopy(CONFIG))
     fsm.step(10, ready())
     fsm.step(10.1, ready(selection=True))
-    fsm.step(161, ready(navigation={'robot1': 'ACTIVE'}))
+    fsm.step(161, ready(navigation={'robot2': 'ACTIVE'}))
     assert fsm.state == State.RECOVERING
 
 
@@ -130,3 +140,56 @@ def test_optional_scan_is_sequential_and_not_mandatory():
     assert ('scan', 'robot2', '') in effects
     fsm.step(12, ready(navigation={'robot1': 'SUCCEEDED', 'robot2': 'SUCCEEDED'}))
     assert fsm.state == State.WAIT_FOR_LOCALIZATION
+
+
+def test_robot1_keeps_driving_after_s1_and_robot2_waits():
+    fsm = at_s1_verification()
+    complete_s1 = {'targets': {'S1': {'eligible': True, 'completed': True}}}
+    fsm.step(21, ready(verification=complete_s1))
+    fsm.step(21.1, ready())
+    assert fsm.state == State.BACK_UP_FROM_S1 and fsm.moving_robots == {'robot1', 'robot2'}
+    fsm.step(23, ready(navigation={'robot2': 'SUCCEEDED'}))
+    assert fsm.selection_goals == {'robot2': 'C1'} and fsm.moving_robots == {'robot1'}
+    fsm.step(23.1, ready(selection=True))
+    fsm.step(27, ready(navigation={'robot2': 'SUCCEEDED'}))  # NavigateToPose result
+    assert fsm.state == State.WAIT_FOR_C1_PARTNER
+    assert fsm.moving_robots == {'robot1'} and fsm.active_target == ''
+    fsm.step(30, ready(navigation={'robot1': 'SUCCEEDED'}))
+    assert fsm.state == State.VERIFY_C1_POSITIONS and fsm.active_target == 'C1'
+    assert not fsm.moving_robots
+
+
+def test_robot1_failure_during_s1_hold_cancels_and_retries_both():
+    fsm = at_s1_verification()
+    fsm.step(11.1, ready(verification={'targets': {'S1': {'eligible': True}}}))
+    effects = fsm.step(12, ready(navigation={'robot1': 'FAILED'}))
+    assert fsm.state == State.RECOVERING and not fsm.moving_robots
+    assert ('cancel_all', '', '') in effects
+    fsm.step(14.1, ready(recovered=True))
+    fsm.step(14.2, ready())
+    assert fsm.selection_goals == {'robot2': 'S1', 'robot1': 'C1'}
+
+
+def test_failed_s1_backup_recovers_before_planning_c1():
+    fsm = at_s1_verification()
+    hold_complete = {'targets': {'S1': {'eligible': True, 'completed': True}}}
+    fsm.step(21.1, ready(verification=hold_complete))
+    fsm.step(21.2, ready())
+    effects = fsm.step(21.3, ready(navigation={'robot2': 'FAILED'}))
+    assert fsm.state == State.RECOVERING and fsm.s1_completed and not fsm.departed_s1
+    assert ('select', 'C1', '') not in effects
+    fsm.step(23.4, ready(recovered=True))
+    effects = fsm.step(23.5, ready())
+    assert fsm.state == State.BACK_UP_FROM_S1 and ('depart_s1', 'robot2', '') in effects
+
+
+def test_blocked_c1_route_can_wait_for_the_partner_without_canceling():
+    fsm = at_s1_verification()
+    fsm.step(21, ready(verification={'targets': {'S1': {'eligible': True, 'completed': True}}}))
+    fsm.step(21.1, ready())
+    fsm.step(21.9, ready(navigation={'robot2': 'SUCCEEDED'}))
+    effects = fsm.step(22, ready(selection=False))
+    assert fsm.state == State.WAIT_FOR_C1_ROUTE and fsm.moving_robots == {'robot1'}
+    assert ('cancel_all', '', '') not in effects
+    effects = fsm.step(27, ready(navigation={'robot1': 'SUCCEEDED'}))
+    assert ('select', 'C1', '') in effects and fsm.selection_goals == {'robot2': 'C1'}

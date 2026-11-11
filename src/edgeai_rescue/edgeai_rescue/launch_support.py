@@ -20,10 +20,12 @@ def costmap_parameters(robot, footprint, global_map):
     return {
         'use_sim_time': True, 'global_frame': 'map' if global_map else f'{robot}/odom',
         'robot_base_frame': f'{robot}/drive_frame',
-        'footprint': str(footprint), 'footprint_padding': .025,
+        # Preserve planner access near the S1 stand.
+        **({'robot_radius': .26} if global_map else {'footprint': str(footprint)}),
+        'footprint_padding': .01,
         'resolution': .025, 'update_frequency': 3. if global_map else 8.,
         'publish_frequency': 2., 'transform_tolerance': .3,
-        'rolling_window': not global_map, 'track_unknown_space': False,
+        'rolling_window': not global_map, 'track_unknown_space': global_map,
         **({} if global_map else {'width': 3, 'height': 3}),
         'plugins': ['static_layer', 'obstacle_layer', 'inflation_layer'],
         'static_layer': {'plugin': 'nav2_costmap_2d::StaticLayer', 'map_topic': '/map',
@@ -42,7 +44,7 @@ def costmap_parameters(robot, footprint, global_map):
                      'obstacle_max_range': 12., 'raytrace_max_range': 12.},
         },
         'inflation_layer': {'plugin': 'nav2_costmap_2d::InflationLayer',
-                            'cost_scaling_factor': 3., 'inflation_radius': .60},
+                            'cost_scaling_factor': 3., 'inflation_radius': .40},
         'always_send_full_costmap': True,
     }
 

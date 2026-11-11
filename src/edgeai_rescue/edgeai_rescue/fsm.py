@@ -8,13 +8,16 @@ class State(Enum):
     INITIALIZING = auto()
     WAIT_FOR_LOCALIZATION = auto()
     INITIAL_LOCALIZATION_SCAN = auto()
-    SELECT_S1_GOAL = auto()
+    SELECT_INITIAL_GOALS = auto()
     NAVIGATE_TO_S1 = auto()
     VERIFY_S1_POSITION = auto()
     HOLD_S1 = auto()
     S1_COMPLETED = auto()
+    BACK_UP_FROM_S1 = auto()
     SELECT_C1_GOALS = auto()
+    WAIT_FOR_C1_ROUTE = auto()
     NAVIGATE_TO_C1 = auto()
+    WAIT_FOR_C1_PARTNER = auto()
     VERIFY_C1_POSITIONS = auto()
     HOLD_C1 = auto()
     C1_COMPLETED = auto()
@@ -37,6 +40,8 @@ class MissionFSM:
     def __init__(self, config, autostart=True):
         self.config = config
         self.timing = config['timing']
+        self.s1_robot, = config['targets']['S1']['robots']
+        self.c1_partner, = (robot for robot in config['targets']['C1']['robots'] if robot != self.s1_robot)
         self.requested = autostart
         self.state = State.INITIALIZING
         self.state_time = self.start_time = self.last_time = None
@@ -44,7 +49,8 @@ class MissionFSM:
         self.s1_completed = self.c1_completed = False
         self.recoveries = {'S1': 0, 'C1': 0}
         self.active_target = ''
-        self.c1_second_sent = False
+        self.partner_started_at = None
+        self.partner_at_c1 = False
         self.departed_s1 = False
         self.scan_index = 0
         self.scan_done = config.get('initial_scan_angle', 0.) == 0
@@ -52,13 +58,23 @@ class MissionFSM:
 
     @property
     def moving_robots(self):
-        if self.state == State.NAVIGATE_TO_S1:
-            return {'robot1'}
-        if self.state == State.NAVIGATE_TO_C1:
-            return {'robot2' if self.c1_second_sent else 'robot1'}
+        moving = {self.c1_partner} if self.partner_started_at is not None else set()
+        if self.state in (State.NAVIGATE_TO_S1, State.BACK_UP_FROM_S1, State.NAVIGATE_TO_C1):
+            moving.add(self.s1_robot)
         if self.state == State.INITIAL_LOCALIZATION_SCAN:
-            return {('robot1', 'robot2')[self.scan_index]}
-        return set()
+            moving.add(('robot1', 'robot2')[self.scan_index])
+        return moving
+
+    @property
+    def assigned_goals(self):
+        return {self.s1_robot: self.phase, self.c1_partner: 'C1'}
+
+    @property
+    def selection_goals(self):
+        goals = self.assigned_goals
+        if self.partner_started_at is not None or self.partner_at_c1:
+            del goals[self.c1_partner]
+        return goals
 
     @property
     def phase(self):
@@ -68,8 +84,18 @@ class MissionFSM:
         self.state, self.state_time, self.reason = state, now, reason
         self.effects.append(('state', state.name, reason))
 
+    def select_next_goals(self, now, reason):
+        if self.s1_completed and not self.departed_s1:
+            self.transition(State.BACK_UP_FROM_S1, now, reason)
+            self.effects.append(('depart_s1', self.s1_robot, ''))
+        else:
+            state = State.SELECT_C1_GOALS if self.s1_completed else State.SELECT_INITIAL_GOALS
+            self.transition(state, now, reason)
+            self.effects.append(('select', self.phase, ''))
+
     def fail(self, now, reason):
         self.active_target = ''
+        self.partner_started_at = None
         self.transition(State.FAILED, now, reason)
         self.effects.append(('cancel_all', '', ''))
 
@@ -79,6 +105,8 @@ class MissionFSM:
             return
         self.recoveries[self.phase] += 1
         self.active_target = ''
+        self.partner_started_at = None
+        self.scan_index = 0
         self.transition(State.RECOVERING, now, reason)
         self.effects.extend([('cancel_all', '', ''), ('clear_costmaps', '', '')])
 
@@ -101,22 +129,28 @@ class MissionFSM:
             return self.effects
         elapsed = now-self.state_time
         status = inputs.navigation
-        failed = any(value in ('FAILED', 'CANCELED', 'REJECTED') for value in status.values())
+        failures = ('FAILED', 'CANCELED', 'REJECTED')
+        if self.partner_started_at is not None:
+            if status.get(self.c1_partner) == 'SUCCEEDED':
+                self.partner_started_at = None
+                self.partner_at_c1 = True
+            elif (not inputs.localized or status.get(self.c1_partner) in failures
+                  or now-self.partner_started_at > self.timing['navigation_timeout']):
+                self.recover(now, f'{self.c1_partner} navigation to C1 failed, timed out, or lost localization')
+                return self.effects
+
         if self.state == State.WAIT_FOR_LOCALIZATION:
             if inputs.ready and inputs.localized:
                 if not self.scan_done:
                     self.transition(State.INITIAL_LOCALIZATION_SCAN, now, 'optional collision-checked scan')
                     self.effects.append(('scan', 'robot1', ''))
                 else:
-                    target = self.phase
-                    self.transition(State.SELECT_C1_GOALS if target == 'C1' else State.SELECT_S1_GOAL,
-                                    now, 'AMCL and navigation ready')
-                    self.effects.append(('select', target, ''))
+                    self.select_next_goals(now, 'AMCL and navigation ready')
             elif elapsed > self.timing['localization_timeout']:
                 self.recover(now, 'Localization/navigation readiness timeout')
         elif self.state == State.INITIAL_LOCALIZATION_SCAN:
             robot = ('robot1', 'robot2')[self.scan_index]
-            if failed or elapsed > self.timing['navigation_timeout']:
+            if status.get(robot) in failures or elapsed > self.timing['navigation_timeout']:
                 self.recover(now, 'Optional localization scan failed')
             elif status.get(robot) == 'SUCCEEDED':
                 if self.scan_index == 0:
@@ -125,32 +159,44 @@ class MissionFSM:
                 else:
                     self.scan_done = True
                     self.transition(State.WAIT_FOR_LOCALIZATION, now, 'scan completed; recheck localization')
-        elif self.state in (State.SELECT_S1_GOAL, State.SELECT_C1_GOALS):
-            if inputs.selection is True:
+        elif self.state in (State.SELECT_INITIAL_GOALS, State.SELECT_C1_GOALS):
+            if inputs.selection is True and inputs.localized:
                 target = self.phase
-                self.c1_second_sent = False
                 self.transition(State.NAVIGATE_TO_S1 if target == 'S1' else State.NAVIGATE_TO_C1,
                                 now, 'footprints and Nav2 reachability validated')
-                self.effects.append(('depart_s1', 'robot1', '') if target == 'C1' and not self.departed_s1
-                                    else ('navigate', 'robot1', target))
+                self.effects.append(('navigate', self.s1_robot, target))
+                if self.c1_partner in self.selection_goals:
+                    self.partner_started_at = now
+                    self.effects.append(('navigate', self.c1_partner, 'C1'))
             elif inputs.selection is False or elapsed > self.timing['selection_timeout']:
-                self.recover(now, 'Goal selection/path validation failed')
-        elif self.state in (State.NAVIGATE_TO_S1, State.NAVIGATE_TO_C1):
-            if not inputs.localized or failed or elapsed > self.timing['navigation_timeout']:
+                if self.state == State.SELECT_C1_GOALS and self.partner_started_at is not None:
+                    self.transition(State.WAIT_FOR_C1_ROUTE, now, 'waiting for the C1 partner to clear the route')
+                else:
+                    self.recover(now, 'Goal selection/path validation failed')
+        elif self.state == State.WAIT_FOR_C1_ROUTE:
+            if self.partner_at_c1 and inputs.localized:
+                self.select_next_goals(now, 'C1 partner parked; retry route')
+            elif not inputs.localized:
+                self.recover(now, 'Localization lost while waiting for the C1 route')
+        elif self.state in (State.NAVIGATE_TO_S1, State.BACK_UP_FROM_S1, State.NAVIGATE_TO_C1):
+            if (not inputs.localized or status.get(self.s1_robot) in failures
+                    or elapsed > self.timing['navigation_timeout']):
                 self.recover(now, 'Navigation failed, timed out, or localization became invalid')
-            elif self.state == State.NAVIGATE_TO_S1 and status.get('robot1') == 'SUCCEEDED':
-                self.active_target = 'S1'
-                self.transition(State.VERIFY_S1_POSITION, now, 'verify distance independently of Nav2')
-            elif self.state == State.NAVIGATE_TO_C1:
-                if status.get('robot1') == 'SUCCEEDED' and not self.departed_s1:
+            elif status.get(self.s1_robot) == 'SUCCEEDED':
+                if self.state == State.NAVIGATE_TO_S1:
+                    self.active_target = 'S1'
+                    self.transition(State.VERIFY_S1_POSITION, now, 'verify distance independently of Nav2')
+                elif self.state == State.BACK_UP_FROM_S1:
                     self.departed_s1 = True
-                    self.effects.append(('navigate', 'robot1', 'C1'))
-                elif status.get('robot1') == 'SUCCEEDED' and not self.c1_second_sent:
-                    self.c1_second_sent = True
-                    self.effects.append(('navigate', 'robot2', 'C1'))
-                elif all(status.get(robot) == 'SUCCEEDED' for robot in ('robot1', 'robot2')):
-                    self.active_target = 'C1'
-                    self.transition(State.VERIFY_C1_POSITIONS, now, 'verify both actual map-frame distances')
+                    self.select_next_goals(now, 'clear of the S1 stand')
+                else:
+                    self.transition(State.WAIT_FOR_C1_PARTNER, now, f'{self.s1_robot} arrived at C1')
+        elif self.state == State.WAIT_FOR_C1_PARTNER:
+            if not inputs.localized:
+                self.recover(now, 'Localization lost while waiting at C1')
+            elif self.partner_at_c1:
+                self.active_target = 'C1'
+                self.transition(State.VERIFY_C1_POSITIONS, now, 'verify both actual map-frame distances')
         elif self.state in (State.VERIFY_S1_POSITION, State.VERIFY_C1_POSITIONS, State.HOLD_S1, State.HOLD_C1):
             target = self.phase
             check = inputs.verification.get('targets', {}).get(target, {})
@@ -165,11 +211,15 @@ class MissionFSM:
                 self.transition(State.VERIFY_S1_POSITION if target == 'S1' else State.VERIFY_C1_POSITIONS,
                                 now, 'hold reset: distance, TF or localization invalid')
             elif not eligible and elapsed > self.timing['position_timeout']:
+                if target == 'C1':
+                    self.partner_at_c1 = False
                 self.recover(now, 'Position verification timeout')
         elif self.state == State.S1_COMPLETED:
             self.s1_completed, self.active_target = True, ''
-            self.transition(State.SELECT_C1_GOALS, now, 'single rescue completed')
-            self.effects.append(('select', 'C1', ''))
+            if inputs.localized:
+                self.select_next_goals(now, 'single rescue completed')
+            else:
+                self.transition(State.WAIT_FOR_LOCALIZATION, now, 'recheck localization before departure')
         elif self.state == State.C1_COMPLETED:
             self.c1_completed, self.active_target = True, ''
             self.transition(State.MISSION_COMPLETED, now, 'both rescue conditions satisfied')

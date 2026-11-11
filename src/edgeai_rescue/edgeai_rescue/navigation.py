@@ -29,7 +29,8 @@ class Navigation:
         self.backups = {}
         self.clear_clients, self.lifecycle, self.lifecycle_states, self.lifecycle_pending = {}, {}, {}, {}
         self.jobs, self.plan_jobs, self.clear_futures = {}, {}, []
-        self.selection = None
+        self.selection_failed = False
+        self.selected_robots = ()
         self.pending_selection = None
         self.generation = 0
         for robot in config['robots']:
@@ -66,8 +67,8 @@ class Navigation:
         return (all(self.lifecycle_states.get(service) == 3 for service in self.lifecycle)
                 and all(client.server_is_ready() for client in self.clients.values())
                 and all(client.server_is_ready() for client in self.planners.values())
-                and all(client.server_is_ready() for client in self.backups.values())
                 and all(client.server_is_ready() for client in self.spinners.values())
+                and all(client.server_is_ready() for client in self.backups.values())
                 and all(client.service_is_ready() for client in self.costmaps.values()))
 
     def send(self, client, goal):
@@ -121,51 +122,53 @@ class Navigation:
 
     def depart_s1(self, robot):
         goal = BackUp.Goal()
-        goal.target.x = float(self.config['s1_departure_distance'])
+        goal.target.x = float(self.config.get('s1_departure_distance', .4))
         goal.speed = .1
         goal.time_allowance.sec = 10
         self.jobs[robot] = self.send(self.backups[robot], goal)
 
-    def select(self, target, static_map):
+    def select(self, goals, static_map):
         self.generation += 1
-        generation = self.generation
-        self.selection, self.jobs, self.plan_jobs = None, {}, {}
+        self.selection_failed = False
+        self.selected_robots = tuple(goals)
+        self.plan_jobs = {}
         try:
             if static_map is None:
                 raise ValueError('Shared occupancy map has not arrived')
-            validate_goals(self.config['targets'][target], static_map, self.footprint)
-            # Drop previous peer trails at phase boundaries; sensors and the
-            # static layer repopulate before validating the new current snapshot.
-            self.clear_costmaps()
-            self.pending_selection = (target, generation, self.node.get_clock().now().nanoseconds*1e-9)
+            for target in dict.fromkeys(goals.values()):
+                validate_goals(self.config['targets'][target], static_map, self.footprint)
+            # Refresh only the costmaps of robots about to receive a new goal.
+            self.clear_costmaps(self.selected_robots)
+            self.pending_selection = (goals, self.generation, self.node.get_clock().now().nanoseconds*1e-9)
         except ValueError as error:
-            self.selection = False
+            self.selection_failed = True
             self.node.get_logger().warning(str(error))
 
     def advance_selection(self):
         if self.pending_selection is None:
             return
-        target, generation, started = self.pending_selection
+        goals, generation, started = self.pending_selection
         if generation != self.generation:
             self.pending_selection = None
             return
         if (self.node.get_clock().now().nanoseconds*1e-9-started < .6
-                or len(self.clear_futures) != len(self.clear_clients)
+                or len(self.clear_futures) != 2*len(goals)
                 or not all(future.done() for future in self.clear_futures)):
             return
         self.pending_selection = None
         if any(future.exception() for future in self.clear_futures):
-            self.selection = False
+            self.selection_failed = True
             return
-        for robot in self.config['targets'][target]['robots']:
+        for robot, target in goals.items():
             if not self.costmaps[robot].service_is_ready():
-                self.selection = False
+                self.selection_failed = True
                 return
             future = self.costmaps[robot].call_async(GetCostmap.Request())
-            future.add_done_callback(lambda done, name=robot: self.costmap_ready(target, name, generation, done))
+            future.add_done_callback(
+                lambda done, name=robot, zone=target: self.costmap_ready(zone, name, generation, done))
 
     def costmap_ready(self, target, robot, generation, future):
-        if generation != self.generation or self.selection is False:
+        if generation != self.generation or self.selection_failed:
             return
         try:
             costmap = future.result().map
@@ -175,24 +178,26 @@ class Navigation:
             grid = OccupancyGrid(data, metadata.resolution,
                                  (origin.position.x, origin.position.y, yaw(origin.orientation)),
                                  blocked_at=254, unknown=255)
-            validate_goals(self.config['targets'][target], grid, self.footprint)
+            # A peer can already occupy its own slot. Check this robot's goal
+            # against the live costmap and check slot separation on the static map.
+            validate_goals({**self.config['targets'][target], 'robots': [robot]}, grid, self.footprint)
             goal = ComputePathToPose.Goal()
             values = shift_pose(self.config['targets'][target]['goals'][robot], self.control_offset)
             goal.goal = pose_message(values, self.node.get_clock().now().to_msg())
             goal.planner_id, goal.use_start = 'GridBased', False
             self.plan_jobs[robot] = self.send(self.planners[robot], goal)
         except Exception as error:
-            self.selection = False
+            self.selection_failed = True
             self.node.get_logger().warning(f'Costmap goal validation failed: {error}')
 
-    def selection_status(self, target):
-        if self.selection is False:
+    def selection_status(self):
+        if self.selection_failed or any(job.status in ('REJECTED', 'FAILED', 'CANCELED')
+                                       for job in self.plan_jobs.values()):
             return False
-        required = self.config['targets'][target]['robots']
-        if any(job.status in ('REJECTED', 'FAILED', 'CANCELED') for job in self.plan_jobs.values()):
-            return False
-        if all(robot in self.plan_jobs and self.plan_jobs[robot].status == 'SUCCEEDED'
-               and self.plan_jobs[robot].result.path.poses for robot in required):
+        if self.selected_robots and all(
+            robot in self.plan_jobs and self.plan_jobs[robot].status == 'SUCCEEDED'
+            and self.plan_jobs[robot].result.path.poses for robot in self.selected_robots
+        ):
             return True
         return None
 
@@ -203,10 +208,11 @@ class Navigation:
             if job.handle and job.status == 'ACTIVE':
                 job.handle.cancel_goal_async()
 
-    def clear_costmaps(self):
+    def clear_costmaps(self, robots=None):
+        robots = self.config['robots'] if robots is None else robots
         self.clear_futures = []
-        for client in self.clear_clients.values():
-            if client.service_is_ready():
+        for topic, client in self.clear_clients.items():
+            if topic.split('/')[1] in robots and client.service_is_ready():
                 self.clear_futures.append(client.call_async(ClearEntireCostmap.Request()))
 
     def recovered(self):
