@@ -353,11 +353,11 @@
       </link>
     </model>
     <!-- C1 shows one radius-0.7 m circle as specified; two cooperative zone locations remain undefined. -->
-    <!-- S1 faces south; C1 faces north for approaches along the eastern corridor. -->
+    <!-- S1 faces east toward the opening around W1; C1 faces north. -->
     <include>
       <uri>model://rescue_target_S1</uri>
       <name>S1</name>
-      <pose>1.0 4.1 0 0 0 0</pose>
+      <pose>1.0 4.1 0 0 0 1.570796326795</pose>
     </include>
     <include>
       <uri>model://rescue_target_C1</uri>
