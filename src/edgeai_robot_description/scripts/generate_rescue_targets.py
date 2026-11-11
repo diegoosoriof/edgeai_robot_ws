@@ -22,16 +22,17 @@ def generate_targets(config_path, models_path):
         tree = ET.parse(directory / 'model.sdf')
         model = tree.getroot().find('model')
         marker = model.find('link')
-        # Native panel +Z becomes world -Y; image right stays world +X.
-        ET.SubElement(marker, 'pose').text = '0 0 0.20 1.570796326795 0 0'
+        # Native panel +Z becomes world -Y; the world include yaw turns C1 north.
+        center_height = 0.35
+        ET.SubElement(marker, 'pose').text = f'0 0 {center_height} 1.570796326795 0 0'
         board = float(marker.findtext('visual/geometry/box/size').split()[0])
-        if board >= 0.4:
-            raise ValueError('Marker and quiet zone must fit above the floor at a 0.20 m centre')
+        if board >= 2 * center_height:
+            raise ValueError('Marker and quiet zone must fit above the floor')
         stand = ET.SubElement(model, 'link', name='stand')
         # Backplate is behind the printed face; stem stops at its lower edge.
-        stem_height = 0.20 - board / 2
+        stem_height = center_height - board / 2
         boxes = (
-            ('backplate', (0, 0.006, 0.20), (board, 0.010, board)),
+            ('backplate', (0, 0.006, center_height), (board, 0.010, board)),
             ('stem', (0, 0.012, stem_height / 2), (0.025, 0.025, stem_height)),
             ('base', (0, 0, 0.01), (0.14, 0.14, 0.02)),
         )

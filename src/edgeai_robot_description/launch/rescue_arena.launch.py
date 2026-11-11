@@ -7,7 +7,7 @@ from launch import LaunchDescription
 from launch.actions import AppendEnvironmentVariable, DeclareLaunchArgument, GroupAction, IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
+from launch.substitutions import AndSubstitution, LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 import xacro
 import yaml
@@ -24,8 +24,11 @@ def generate_launch_description():
                               description='World filename in this package worlds directory'),
         DeclareLaunchArgument('gz_args', default_value='-r',
                               description='Gazebo flags; use -r -s --headless-rendering without a GUI'),
+        DeclareLaunchArgument('shutdown_on_gazebo_exit', default_value='true'),
         DeclareLaunchArgument('enable_aruco', default_value='true'),
+        DeclareLaunchArgument('enable_registry', default_value='true'),
         DeclareLaunchArgument('enable_rviz', default_value='true'),
+        DeclareLaunchArgument('enable_world_anchor', default_value='true'),
         DeclareLaunchArgument('robot_count', default_value='2', choices=['1', '2'],
                               description='1 spawns robot1; 2 spawns robot1 and robot2'),
         AppendEnvironmentVariable('GZ_SIM_RESOURCE_PATH', str(share / 'models')),
@@ -34,7 +37,7 @@ def generate_launch_description():
             launch_arguments={
                 'gz_args': [LaunchConfiguration('gz_args'), ' ',
                             PathJoinSubstitution([str(share), 'worlds', LaunchConfiguration('world')])],
-                'on_exit_shutdown': 'true',
+                'on_exit_shutdown': LaunchConfiguration('shutdown_on_gazebo_exit'),
             }.items()),
         Node(package='ros_gz_bridge', executable='parameter_bridge', name='clock_bridge',
              arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'], output='screen'),
@@ -88,7 +91,8 @@ def generate_launch_description():
                  }]),
             Node(package='edgeai_aruco', executable='aruco_registry', namespace=name,
                  name='aruco_registry', output='screen',
-                 condition=IfCondition(LaunchConfiguration('enable_aruco')),
+                 condition=IfCondition(AndSubstitution(
+                     LaunchConfiguration('enable_aruco'), LaunchConfiguration('enable_registry'))),
                  parameters=[str(aruco / 'config/aruco.yaml'), settings,
                              {'registry_frame': f'{name}/odom'}]),
         ]))
@@ -96,6 +100,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(str(share / 'launch/rescue_visualization.launch.py')),
         launch_arguments={
             'enable_rviz': LaunchConfiguration('enable_rviz'),
+            'enable_world_anchor': LaunchConfiguration('enable_world_anchor'),
             'robot_count': LaunchConfiguration('robot_count'),
         }.items(),
     ))

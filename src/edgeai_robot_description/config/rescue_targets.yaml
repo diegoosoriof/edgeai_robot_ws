@@ -1,6 +1,6 @@
-# Temporary competition defaults. Regenerate the stand models after editing.
+# Competition Part 1 stand dimensions. Regenerate the stand models after editing.
 dictionary: DICT_4X4_50
-marker_size: 0.20  # Black square side, metres; excludes the white quiet zone.
+marker_size: 0.16  # Printed black square side, metres; excludes the white quiet zone.
 targets:
   S1:
     id: 1

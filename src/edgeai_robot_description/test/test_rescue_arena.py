@@ -146,5 +146,22 @@ def test_stands_reproduce_valid_distinct_markers(tmp_path):
         assert model.findall('.//collision')
         marker = model.find("link[@name='marker']")
         assert marker.findall('collision') == []
-        np.testing.assert_allclose(np.fromstring(marker.findtext('pose'), sep=' ')[:3], [0, 0, .20])
+        np.testing.assert_allclose(np.fromstring(marker.findtext('pose'), sep=' ')[:3], [0, 0, .35])
     assert len(set(ids)) == 2
+
+
+def test_competition_marker_faces_and_dimensions():
+    includes = {item.findtext('name'): item for item in world().findall('include')}
+    config = yaml.safe_load((PACKAGE / 'config/rescue_targets.yaml').read_text())
+    assert config['dictionary'] == 'DICT_4X4_50'
+    assert config['marker_size'] == .16
+    for name, expected_normal in (('S1', [0, -1, 0]), ('C1', [0, 1, 0])):
+        model = ET.parse(PACKAGE / f'models/rescue_target_{name}/model.sdf').getroot().find('model')
+        marker = model.find("link[@name='marker']")
+        local_pose = np.fromstring(marker.findtext('pose'), sep=' ')
+        world_pose = np.fromstring(includes[name].findtext('pose'), sep=' ')
+        normal = rotation(world_pose[3:]) @ rotation(local_pose[3:]) @ [0, 0, 1]
+        np.testing.assert_allclose(normal, expected_normal, atol=1e-9)
+        assert local_pose[2] == .35
+        board = np.fromstring(marker.findtext("visual[@name='white_backing']/geometry/box/size"), sep=' ')
+        assert board[0] > .16 and board[1] > .16

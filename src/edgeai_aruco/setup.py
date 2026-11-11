@@ -23,5 +23,7 @@ setup(
         'aruco_detector = edgeai_aruco.node:main',
         'aruco_registry = edgeai_aruco.registry:main',
         'generate_marker = edgeai_aruco.marker_model:main',
+        'part1_recorder = edgeai_aruco.part1_record:main',
+        'part1_explorer = edgeai_aruco.part1_explorer:main',
     ]},
 )
