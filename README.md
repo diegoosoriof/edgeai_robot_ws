@@ -34,7 +34,20 @@ The script resolves the workspace relative to its own location, activates Pixi, 
 
 The launch file loads `edgeai_robot_real.urdf.xacro`, starts the world in `worlds/empty.sdf`, spawns `edgeai_robot_real`, and starts the ROS–Gazebo bridge and robot transforms. The old simple model and its launch script have been removed; `start_sim.sh` is the current entry point.
 
-The portable realistic startup has been tested successfully. AMCL localization remains a local experiment; its launch and parameter files are not included in this repository. Installed AMCL dependencies do **not** mean that localization or autonomous navigation is complete.
+The single-robot startup does not start localization or navigation. Part 2 uses the dedicated launch below.
+
+## Part 2: autonomous rescue
+
+```bash
+pixi install
+pixi run colcon build --symlink-install --packages-select edgeai_robot_description edgeai_rescue
+source setup_part2.bash
+ros2 launch edgeai_rescue rescue_part2.launch.py
+```
+
+Starts two robots, a shared map, independent AMCL/Nav2, the rescue FSM, verification and RViz.
+Use `autostart_mission:=false` for debugging or `map_yaml:=/path/map.yaml` for a team-prepared map.
+Commands, configuration and evidence: [Part 2 README](src/edgeai_rescue/README.md).
 
 ## ROS commands in another terminal
 
