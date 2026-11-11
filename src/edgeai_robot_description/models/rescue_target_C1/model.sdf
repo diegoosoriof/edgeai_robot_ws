@@ -1,0 +1,515 @@
+<?xml version='1.0' encoding='utf-8'?>
+<sdf version="1.9">
+  <model name="rescue_target_C1">
+    <static>true</static>
+    <link name="marker">
+      <visual name="white_backing">
+        <pose>0 0 -0.0005 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.213333333333 0.213333333333 0.001</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+          <emissive>1 1 1 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_0_0">
+        <pose>-0.0666666666667 0.0666666666667 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_0_1">
+        <pose>-0.04 0.0666666666667 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_0_2">
+        <pose>-0.0133333333333 0.0666666666667 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_0_3">
+        <pose>0.0133333333333 0.0666666666667 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_0_4">
+        <pose>0.04 0.0666666666667 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_0_5">
+        <pose>0.0666666666667 0.0666666666667 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_1_0">
+        <pose>-0.0666666666667 0.04 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_1_1">
+        <pose>-0.04 0.04 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_1_2">
+        <pose>-0.0133333333333 0.04 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_1_5">
+        <pose>0.0666666666667 0.04 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_2_0">
+        <pose>-0.0666666666667 0.0133333333333 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_2_1">
+        <pose>-0.04 0.0133333333333 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_2_2">
+        <pose>-0.0133333333333 0.0133333333333 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_2_5">
+        <pose>0.0666666666667 0.0133333333333 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_3_0">
+        <pose>-0.0666666666667 -0.0133333333333 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_3_1">
+        <pose>-0.04 -0.0133333333333 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_3_2">
+        <pose>-0.0133333333333 -0.0133333333333 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_3_4">
+        <pose>0.04 -0.0133333333333 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_3_5">
+        <pose>0.0666666666667 -0.0133333333333 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_4_0">
+        <pose>-0.0666666666667 -0.04 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_4_3">
+        <pose>0.0133333333333 -0.04 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_4_5">
+        <pose>0.0666666666667 -0.04 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_5_0">
+        <pose>-0.0666666666667 -0.0666666666667 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_5_1">
+        <pose>-0.04 -0.0666666666667 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_5_2">
+        <pose>-0.0133333333333 -0.0666666666667 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_5_3">
+        <pose>0.0133333333333 -0.0666666666667 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_5_4">
+        <pose>0.04 -0.0666666666667 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <visual name="black_5_5">
+        <pose>0.0666666666667 -0.0666666666667 0.0001 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.0266666666667 0.0266666666667 0.0002</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <emissive>0 0 0 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <pose>0 0 0.35 1.570796326795 0 0</pose>
+    </link>
+    <link name="stand">
+      <visual name="backplate">
+        <pose>0 0.006 0.35 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.213333333333 0.01 0.213333333333</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0.35 0.35 0.35 1</ambient>
+          <diffuse>0.35 0.35 0.35 1</diffuse>
+          <emissive>0.35 0.35 0.35 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <collision name="backplate_collision">
+        <pose>0 0.006 0.35 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.213333333333 0.01 0.213333333333</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="stem">
+        <pose>0 0.012 0.121666666667 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.025 0.025 0.243333333333</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0.35 0.35 0.35 1</ambient>
+          <diffuse>0.35 0.35 0.35 1</diffuse>
+          <emissive>0.35 0.35 0.35 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <collision name="stem_collision">
+        <pose>0 0.012 0.121666666667 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.025 0.025 0.243333333333</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="base">
+        <pose>0 0 0.01 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.14 0.14 0.02</size>
+          </box>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <ambient>0.35 0.35 0.35 1</ambient>
+          <diffuse>0.35 0.35 0.35 1</diffuse>
+          <emissive>0.35 0.35 0.35 1</emissive>
+          <specular>0 0 0 1</specular>
+        </material>
+      </visual>
+      <collision name="base_collision">
+        <pose>0 0 0.01 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.14 0.14 0.02</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+  </model>
+</sdf>

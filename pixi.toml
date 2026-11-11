@@ -31,6 +31,29 @@ ros-jazzy-nav2-map-server = ">=1.3.10,<2"
 ros-jazzy-ros2lifecycle = ">=0.32.7,<0.33"
 ros-jazzy-nav2-amcl = ">=1.3.10,<2"
 ros-jazzy-nav2-lifecycle-manager = ">=1.3.10,<2"
+ros-jazzy-rqt-graph = ">=1.5.5,<2"
+ros-jazzy-navigation2 = ">=1.3.10,<2"
+ros-jazzy-nav2-bringup = ">=1.3.10,<2"
+scipy = ">=1.18.1,<2"
+opencv = ">=4.12.0,<5"
+
+# ArUco perception (OpenCV's conda build includes the ArUco module).
+ros-jazzy-rclpy = ">=7.1,<8"
+ros-jazzy-rcl-interfaces = "*"
+ros-jazzy-sensor-msgs = "*"
+ros-jazzy-geometry-msgs = "*"
+ros-jazzy-std-msgs = "*"
+ros-jazzy-vision-msgs = ">=4.1,<5"
+ros-jazzy-visualization-msgs = "*"
+ros-jazzy-cv-bridge = ">=4.1,<5"
+ros-jazzy-tf2-geometry-msgs = ">=0.36,<0.37"
+py-opencv = ">=4.10,<5"
+numpy = ">=1.26,<3"
+# Jazzy launch_testing still uses pytest's pre-9 hook signatures.
+pytest = ">=8,<9"
+# colcon's symlink install uses the legacy setuptools develop command.
+setuptools = ">=68,<80"
+ros-jazzy-teleop-twist-keyboard = ">=2.4.1,<3"
 
 # Part 2: independent localization/navigation and rescue coordination.
 ros-jazzy-navigation2 = ">=1.3.10,<2"
@@ -54,3 +77,5 @@ setuptools = ">=68,<80"
 RMW_IMPLEMENTATION = "rmw_cyclonedds_cpp"
 ROS_AUTOMATIC_DISCOVERY_RANGE = "SUBNET"
 ROS_DOMAIN_ID = "0"
+# Keep simulation, RViz and CLI terminals on the same local DDS transport.
+CYCLONEDDS_URI = "file://$PIXI_PROJECT_ROOT/src/edgeai_robot_description/config/rescue_simulation_dds.xml"

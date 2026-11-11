@@ -1,8 +1,10 @@
 import os
 
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import AppendEnvironmentVariable, DeclareLaunchArgument, IncludeLaunchDescription
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
 
 from launch_ros.actions import Node
 
@@ -18,6 +20,7 @@ def generate_launch_description():
 
     pkg_share = get_package_share_directory(package_name)
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
+    aruco_share = get_package_share_directory('edgeai_aruco')
 
     # New realistic robot model
     xacro_file = os.path.join(
@@ -50,7 +53,7 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            'gz_args': f'-r {world_file}'
+            'gz_args': LaunchConfiguration('gz_args')
         }.items()
     )
 
@@ -60,7 +63,7 @@ def generate_launch_description():
         executable='robot_state_publisher',
         name='robot_state_publisher',
         output='screen',
-        parameters=[robot_description]
+        parameters=[robot_description, {'use_sim_time': True}]
     )
 
     # Spawn the new robot
@@ -122,11 +125,43 @@ def generate_launch_description():
             'edgeai_robot_real/base_footprint/rgbd_camera',
         ]
     )
+    slam = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('slam_toolbox'),
+                'launch',
+                'online_async_launch.py'
+            )
+        ),
+        launch_arguments={
+            'slam_params_file': os.path.join(
+                pkg_share, 'config', 'slam_toolbox.yaml'
+            ),
+            'use_sim_time': 'true',
+            'autostart': 'true',
+            'use_lifecycle_manager': 'false',
+        }.items()
+    )
 
     return LaunchDescription([
+        DeclareLaunchArgument('gz_args', default_value=f'-r {world_file}',
+                              description='Gazebo arguments; use -s --headless-rendering for CI'),
+        DeclareLaunchArgument('enable_aruco', default_value='false'),
+        DeclareLaunchArgument('aruco_params_file', default_value=os.path.join(
+            aruco_share, 'config', 'aruco.yaml')),
+        AppendEnvironmentVariable('GZ_SIM_RESOURCE_PATH', os.path.join(pkg_share, 'models')),
         gazebo,
         robot_state_publisher,
         spawn_robot,
         bridge,
         camera_sensor_tf,
+        slam,
+        # IncludeLaunchDescription(
+        #     PythonLaunchDescriptionSource(os.path.join(aruco_share, 'launch', 'detection.launch.py')),
+        #     condition=IfCondition(LaunchConfiguration('enable_aruco')),
+        #     launch_arguments={
+        #         'params_file': LaunchConfiguration('aruco_params_file'),
+        #         'use_sim_time': 'true',
+        #     }.items(),
+        # ),
     ])

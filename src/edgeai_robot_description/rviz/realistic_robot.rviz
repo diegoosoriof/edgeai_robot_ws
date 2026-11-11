@@ -12,6 +12,8 @@ Panels:
         - /PointCloud21
         - /Image1
         - /Image2
+        - /ArUco Debug Image1
+        - /Saved ArUco Markers1
         - /Map1
       Splitter Ratio: 0.5
     Tree Height: 358
@@ -233,17 +235,42 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /camera/depth_image
       Value: true
+    - Class: rviz_default_plugins/Image
+      Enabled: true
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: ArUco Debug Image
+      Normalize Range: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /aruco/debug_image
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: Saved ArUco Markers
+      Namespaces: {}
+      Topic:
+        Depth: 1
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /aruco/known_markers_visualization
+      Value: true
     - Alpha: 0.699999988079071
       Binary representation: false
       Binary threshold: 100
       Class: rviz_default_plugins/Map
       Color Scheme: map
       Draw Behind: false
-      Enabled: false
+      Enabled: true
       Name: Map
       Topic:
         Depth: 5
-        Durability Policy: Volatile
+        Durability Policy: Transient Local
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
@@ -255,11 +282,11 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /map_updates
       Use Timestamp: false
-      Value: false
+      Value: True
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: odom
+    Fixed Frame: map
     Frame Rate: 30
   Name: root
   Tools:
@@ -323,6 +350,8 @@ Visualization Manager:
       Yaw: 3.138573169708252
     Saved: ~
 Window Geometry:
+  ArUco Debug Image:
+    collapsed: false
   Displays:
     collapsed: false
   Height: 1043
